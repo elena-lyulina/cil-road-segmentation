@@ -47,27 +47,30 @@ def np_to_tensor(x, device):
 class ImageDataset(torch.utils.data.Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
-    def __init__(self, images, masks, patch_size, cutoff, device, use_patches=True, resize_to=(400, 400)):
-        self.images = images
-        self.masks = masks
+    def __init__(self, image_paths, mask_paths, patch_size, cutoff, device, use_patches=True, resize_to=(400, 400)):
+        self.items = []
+
+        items = zip(image_paths, mask_paths)
+
         self.patch_size = patch_size
         self.cutoff = cutoff
         self.device = device
-        self.use_patches = use_patches
         self.resize_to = resize_to
-        self.x, self.y, self.n_samples = None, None, None
-        self._load_data()
 
-    def _load_data(self):  # not very scalable, but good enough for now
-        self.x = self.images
-        self.y = self.masks
-        if self.use_patches:  # split each image into patches
-            self.x, self.y = image_to_patches(self.x, self.patch_size, self.cutoff, self.y)
-        elif self.resize_to != (self.x.shape[1], self.x.shape[2]):  # resize images
-            self.x = np.stack([cv2.resize(img, dsize=self.resize_to) for img in self.x], 0)
-            self.y = np.stack([cv2.resize(mask, dsize=self.resize_to) for mask in self.y], 0)
-        self.x = np.moveaxis(self.x, -1, 1)  # pytorch works with CHW format instead of HWC
-        self.n_samples = len(self.x)
+    #     self.x, self.y, self.n_samples = None, None, None
+    #
+    #     self._load_data()
+    #
+    # def _load_data(self):  # not very scalable, but good enough for now
+    #     self.x = self.images
+    #     self.y = self.masks
+    #     if self.use_patches:  # split each image into patches
+    #         self.x, self.y = image_to_patches(self.x, self.patch_size, self.cutoff, self.y)
+    #     elif self.resize_to != (self.x.shape[1], self.x.shape[2]):  # resize images
+    #         self.x = np.stack([cv2.resize(img, dsize=self.resize_to) for img in self.x], 0)
+    #         self.y = np.stack([cv2.resize(mask, dsize=self.resize_to) for mask in self.y], 0)
+    #     self.x = np.moveaxis(self.x, -1, 1)  # pytorch works with CHW format instead of HWC
+    #     self.n_samples = len(self.x)
 
     def _preprocess(self, x, y):
         # to keep things simple we will not apply transformations to each sample,
@@ -75,7 +78,16 @@ class ImageDataset(torch.utils.data.Dataset):
         return x, y
 
     def __getitem__(self, item):
-        return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
+        # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
+        img_path, mask_path = self.items[item]
+        image = Image.open(img_path)[:3]
+        mask = Image.open(mask_path).squeeze()
+        if self.resize_to != (image.shape[0], image.shape[1]):  # resize images
+            image = cv2.resize(image, dsize=self.resize_to)
+            mask = cv2.resize(mask, dsize=self.resize_to)
+
+        image = np.moveaxis(image, -1, 0)  # pytorch works with CHW format instead of HWC
+        return self._preprocess(np_to_tensor(image, self.device), np_to_tensor(mask, self.device))
 
     def __len__(self):
-        return self.n_samples
+        return len(self.items)

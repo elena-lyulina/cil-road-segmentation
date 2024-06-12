@@ -28,17 +28,20 @@ if __name__ == '__main__':
     CUTOFF = 0.25
 
     ROOT_PATH = "../../"
-    images = load_all_from_path(os.path.join(ROOT_PATH, 'data', 'training', 'images'))[:, :, :, :3]
-    masks = load_all_from_path(os.path.join(ROOT_PATH, 'data', 'training', 'groundtruth'))
+    images_path = load_all_from_path(os.path.join(ROOT_PATH, 'data', 'training', 'images'))[:, :, :, :3]
+    masks_path = load_all_from_path(os.path.join(ROOT_PATH, 'data', 'training', 'groundtruth'))
+
+    image_paths = [f for f in sorted(glob(images_path + '/*.png'))]
+    mask_paths = [f for f in sorted(glob(masks_path + '/*.png'))]
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    train_images, val_images, train_masks, val_masks = train_test_split(
-        images, masks, test_size=0.2, random_state=42
+    train_image_paths, val_image_paths, train_mask_paths, val_mask_paths = train_test_split(
+        image_paths, mask_paths, test_size=0.2, random_state=42
     )
 
-    train_dataset = ImageDataset(train_images, train_masks, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
-    val_dataset = ImageDataset(val_images, val_masks, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
+    train_dataset = ImageDataset(train_image_paths, train_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
+    val_dataset = ImageDataset(val_image_paths, val_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=4, shuffle=True)
     model = UNet().to(device)
