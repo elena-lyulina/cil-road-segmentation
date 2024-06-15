@@ -25,6 +25,24 @@ pip install -r requirements.txt
 
 Note: We run our experiments on Python version 3.11.5. We recommend users use the correct Python executable to initiate the virtual environment.
 
+### Directory Structure
+```
+CIL-ROAD-SEGMENTATION-2024
+└───cil-rs
+    |───data
+    |   |───test
+    |   |   └───images
+    |   └───training
+    |       |───groundtruth
+    |       └───images
+    |───docs
+    |───notebook
+    |───out
+    └───src
+        |───models
+        └───submission
+```
+
 ### Links: 
 1. [Video recording](https://video.ethz.ch/lectures/d-infk/2024/spring/263-0008-00L/fe8cb982-d061-4350-8c3e-26b0cdb43119.html) of the preparatory session about this project
 2. [Kaggle link](https://www.kaggle.com/t/0fe22c50cf504e64b2decda075f71c87)
