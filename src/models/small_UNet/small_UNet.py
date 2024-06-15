@@ -1,3 +1,5 @@
+import time
+
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
@@ -49,7 +51,7 @@ class UNet(nn.Module):
 
 def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs):
     # training loop
-    logdir = './tensorboard/net'
+    logdir = './models/small_UNet/tensorboard/net'
     writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
 
     history = {}  # collects metrics at the end of each epoch
@@ -97,7 +99,11 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
         # show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
-    print('Finished Training')
+    print('Finished Training, saving model.')
+    model_path = f'./models/small_UNet/checkpoints/model_{time.strftime("%Y%m%d-%H%M%S")}.pth'
+    torch.save(model.stat_dict(), model_path)
+    print('Model saved.')
+
     # plot loss curves
     plt.plot([v['loss'] for k, v in history.items()], label='Training Loss')
     plt.plot([v['val_loss'] for k, v in history.items()], label='Validation Loss')

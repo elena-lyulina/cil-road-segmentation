@@ -6,8 +6,8 @@ from sklearn.model_selection import train_test_split
 from torch import nn
 
 from data.dataset import ImageDataset
-from src.models.small_UNet import UNet
-from models.small_UNet import train
+from src.models.small_UNet.small_UNet import UNet
+from src.models.small_UNet.small_UNet import train
 
 
 def accuracy_fn(y_hat, y):
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     VAL_SIZE = 10
     CUTOFF = 0.25
 
-    ROOT_PATH = "../../"
+    ROOT_PATH = "../"
     # images_path = os.path.join(ROOT_PATH, 'data', 'training', 'images')
     # masks_path = os.path.join(ROOT_PATH, 'data', 'training', 'groundtruth')
 
