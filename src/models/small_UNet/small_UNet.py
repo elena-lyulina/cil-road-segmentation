@@ -1,3 +1,4 @@
+import os
 import time
 
 import torch
@@ -50,6 +51,9 @@ class UNet(nn.Module):
 
 
 def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs):
+
+
+
     # training loop
     logdir = './models/small_UNet/tensorboard/net'
     writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
@@ -100,8 +104,13 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
         # show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
     print('Finished Training, saving model.')
-    model_path = f'./models/small_UNet/checkpoints/model_{time.strftime("%Y%m%d-%H%M%S")}.pth'
-    torch.save(model.stat_dict(), model_path)
+    model_path = './models/small_UNet/checkpoints'
+    if not os.path.exists(model_path):
+        os.mkdir(model_path)
+    torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict()
+                }, model_path + f'/model_{time.strftime("%Y%m%d-%H%M%S")}.pth')
     print('Model saved.')
 
     # plot loss curves

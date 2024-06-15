@@ -1,19 +1,28 @@
 import os
 import cv2
 from glob import glob
+from PIL import Image
 import numpy as np
 import torch
 
 from src.data.dataset import load_all_from_path, np_to_tensor
 from src.models.small_UNet.small_UNet import UNet
+from src.submission.mask_to_submission import masks_to_submission
 
 if __name__ == '__main__':
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model_path = './checkpoints/model_xxx.pth'
-    model = UNet().to(device)
-    model.load_state_dict(torch.load(model_path))
+    PATCH_SIZE = 16
+    CUTOFF = 0.25
 
-    ROOT_PATH = "../../"
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model_path = './models/small_UNet/checkpoints/model_20240615-203721.pth'
+    prediction_path = './../out/predictions'
+    if not os.path.exists(prediction_path):
+        os.mkdir(prediction_path)
+    model = UNet().to(device)
+    checkpoint = torch.load(model_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    ROOT_PATH = "../"
     test_path = os.path.join(ROOT_PATH, 'data', 'test', 'images')
     test_paths = glob(test_path + '/*.png')
 
@@ -26,4 +35,12 @@ if __name__ == '__main__':
     test_pred = [model(t).detach().cpu().numpy() for t in test_images.unsqueeze(1)]
     test_pred = np.concatenate(test_pred, 0)
     test_pred = np.moveaxis(test_pred, 1, -1)  # CHW to HWC
-    test_pred = np.stack([cv2.resize(img, dsize=size) for img in test_pred], 0)
+
+    for i, img in enumerate(test_pred):
+        img_name = test_paths[i].split('/')[-1].split('\\')[-1]
+        file_path = os.path.join(prediction_path, img_name)
+        img = cv2.resize(img, dsize=size)
+        image = Image.fromarray((img*255).astype(np.uint8))
+        image.save(file_path)
+
+    masks_to_submission('./../out/small_unet_submission.csv', None, glob(prediction_path + '/*png'))

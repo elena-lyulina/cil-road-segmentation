@@ -14,6 +14,7 @@ def accuracy_fn(y_hat, y):
     # computes classification accuracy
     return (y_hat.round() == y.round()).float().mean()
 
+
 def patch_accuracy_fn(y_hat, y):
     # computes accuracy weighted by patches (metric used on Kaggle for evaluation)
     h_patches = y.shape[-2] // PATCH_SIZE
@@ -29,11 +30,11 @@ if __name__ == '__main__':
     CUTOFF = 0.25
 
     ROOT_PATH = "../"
-    # images_path = os.path.join(ROOT_PATH, 'data', 'training', 'images')
-    # masks_path = os.path.join(ROOT_PATH, 'data', 'training', 'groundtruth')
+    images_path = os.path.join(ROOT_PATH, 'data', 'training', 'images')
+    masks_path = os.path.join(ROOT_PATH, 'data', 'training', 'groundtruth')
 
-    images_path = os.path.join(ROOT_PATH, 'data', 'patches', 'images')
-    masks_path = os.path.join(ROOT_PATH, 'data', 'patches', 'masks')
+    # images_path = os.path.join(ROOT_PATH, 'data', 'patches', 'images')
+    # masks_path = os.path.join(ROOT_PATH, 'data', 'patches', 'masks')
 
     image_paths = [f for f in sorted(glob(images_path + '/*.png'))]
     mask_paths = [f for f in sorted(glob(masks_path + '/*.png'))]
@@ -48,9 +49,15 @@ if __name__ == '__main__':
     val_dataset = ImageDataset(val_image_paths, val_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=4, shuffle=True)
+
     model = UNet().to(device)
+    optimizer = torch.optim.Adam(model.parameters())
+    # model_path = './models/small_UNet/checkpoints/model_{time.strftime("%Y%m%d-%H%M%S")}.pth'
+    # checkpoint = torch.load(model_path)
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
     loss_fn = nn.BCELoss()
     metric_fns = {'acc': accuracy_fn, 'patch_acc': patch_accuracy_fn}
-    optimizer = torch.optim.Adam(model.parameters())
-    n_epochs = 5
+    n_epochs = 10
     train(train_dataloader, val_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs)
