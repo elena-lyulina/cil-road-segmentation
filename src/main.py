@@ -5,9 +5,9 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch import nn
 
-from src.data.dataset import ImageDataset
+from data.dataset import ImageDataset
 from src.models.small_UNet import UNet
-from src.models.small_UNet import train
+from models.small_UNet import train
 
 
 def accuracy_fn(y_hat, y):
