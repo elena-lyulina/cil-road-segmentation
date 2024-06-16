@@ -7,7 +7,7 @@ import torch
 
 from src.data.dataset import load_all_from_path, np_to_tensor
 from src.models.small_UNet.small_UNet import UNet
-from src.submission.mask_to_submission import masks_to_submission
+from src.submission.mask_to_submission import masks_to_submission, create_submission
 
 if __name__ == '__main__':
     PATCH_SIZE = 16
@@ -36,11 +36,10 @@ if __name__ == '__main__':
     test_pred = np.concatenate(test_pred, 0)
     test_pred = np.moveaxis(test_pred, 1, -1)  # CHW to HWC
 
-    for i, img in enumerate(test_pred):
-        img_name = test_paths[i].split('/')[-1].split('\\')[-1]
-        file_path = os.path.join(prediction_path, img_name)
-        img = cv2.resize(img, dsize=size)
-        image = Image.fromarray((img*255).astype(np.uint8))
-        image.save(file_path)
+    test_pred = np.stack([cv2.resize(img, dsize=size) for img in test_pred], 0)  # resize to original shape
+    # now compute labels
+    test_pred = test_pred.reshape((-1, size[0] // PATCH_SIZE, PATCH_SIZE, size[0] // PATCH_SIZE, PATCH_SIZE))
+    test_pred = np.moveaxis(test_pred, 2, 3)
+    test_pred = np.round(np.mean(test_pred, (-1, -2)) > CUTOFF)
 
-    masks_to_submission('./../out/small_unet_submission.csv', None, glob(prediction_path + '/*png'))
+    create_submission(test_pred, test_paths, './../out/small_unet_submission.csv', PATCH_SIZE)
