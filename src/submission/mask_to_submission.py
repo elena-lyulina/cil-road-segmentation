@@ -72,3 +72,13 @@ def main(_):
 
 if __name__ == '__main__':
     app.run(main)
+
+
+def create_submission(test_pred, test_filenames, submission_filename, patch_size):
+    with open(submission_filename, 'w') as f:
+        f.write('id,prediction\n')
+        for fn, patch_array in zip(sorted(test_filenames), test_pred):
+            img_number = int(re.search(r"\d+", fn).group(0))
+            for i in range(patch_array.shape[0]):
+                for j in range(patch_array.shape[1]):
+                    f.write("{:03d}_{}_{},{}\n".format(img_number, j*patch_size, i*patch_size, int(patch_array[i, j])))
