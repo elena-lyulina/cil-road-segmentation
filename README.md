@@ -46,6 +46,7 @@ CIL-ROAD-SEGMENTATION-2024
     |───out
     └───src
         |───models
+        |───pretrained_models
         └───submission
 ```
 
