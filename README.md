@@ -35,6 +35,12 @@ CIL-ROAD-SEGMENTATION-2024
     |   └───training
     |       |───groundtruth
     |       └───images
+    |───data-massachusetts
+    |   |───test 
+    |   |───test_labels
+    |   |───train
+    |   |───train_labels
+    |   |───val
     |───docs
     |───notebook
     |───out
