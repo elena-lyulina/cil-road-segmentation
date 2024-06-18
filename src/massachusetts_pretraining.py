@@ -1,15 +1,15 @@
 import os
+print("Current working directory:", os.getcwd())
+
 import numpy as np
 from glob import glob
 from PIL import Image
 import torch
 import torch.nn as nn
 from tqdm.notebook import tqdm
-from src.models.small_UNet.small_UNet import UNet
+from models.small_UNet.small_UNet import UNet
 
 from torch.utils.data import Dataset
-
-print("Current working directory:", os.getcwd())
 
 #### ADAPT THESE ####
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2" #set what nodes to use if relevant. Set to "0" if single GPU
@@ -31,7 +31,7 @@ CUTOFF = 0.25
 
 
 #### PATHS ####
-ROOT_PATH = "../data-massachusetts"#../../ext_train/"
+ROOT_PATH = "../data-massachusetts" #../../ext_train/"
 
 train_images_path = ROOT_PATH+"train"
 train_masks_path = ROOT_PATH+"train_labels"
