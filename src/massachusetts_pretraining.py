@@ -5,7 +5,8 @@ from PIL import Image
 import torch
 import torch.nn as nn
 from tqdm.notebook import tqdm
-from models_import import DC_Unet, UNet
+from src.models.small_UNet.small_UNet import UNet
+
 from torch.utils.data import Dataset
 
 print("Current working directory:", os.getcwd())
