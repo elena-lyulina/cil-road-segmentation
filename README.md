@@ -29,24 +29,27 @@ Note: We run our experiments on Python version 3.11.5. We recommend users use th
 ```
 CIL-ROAD-SEGMENTATION-2024
 └───cil-rs
-    |───data
-    |   |───test
-    |   |   └───images
-    |   └───training
-    |       |───groundtruth
-    |       └───images
-    |───data-massachusetts
-    |   |───test 
-    |   |───test_labels
-    |   |───train
-    |   |───train_labels
-    |   |───val
+    |───data    // various datasets used for this task
+    |   |───cil
+    |   |   |───test
+    |   |   |   └───images
+    |   |   └───training
+    |   |       |───groundtruth
+    |   |       └───images
+    |   └───data-massachusetts
+    |       |───test 
+    |       |───test_labels
+    |       |───train
+    |       |───train_labels
+    |       └───val
     |───docs
     |───notebook
-    |───out
-    └───src
+    |───out     // configs, trained models, submissions
+    |   |───models
+    |   └───prediction
+    └───src     // source code: dataloaders, models' implementations, training
+        |───data 
         |───models
-        |───pretrained_models
         └───submission
 ```
 

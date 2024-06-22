@@ -5,7 +5,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch import nn
 
-from data.dataset import ImageDataset
+from src.data.cil_dataset import CILDataset
 from src.models.small_UNet.small_UNet import UNet
 from src.models.small_UNet.small_UNet import train
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
         image_paths, mask_paths, test_size=0.2, random_state=42
     )
 
-    train_dataset = ImageDataset(train_image_paths, train_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
-    val_dataset = ImageDataset(val_image_paths, val_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
+    train_dataset = CILDataset(train_image_paths, train_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
+    val_dataset = CILDataset(val_image_paths, val_mask_paths, PATCH_SIZE, CUTOFF, device, use_patches=False, resize_to=(384, 384))
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=4, shuffle=True)
 

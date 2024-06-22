@@ -1,12 +1,11 @@
 import os
-import numpy as np
-from glob import glob
-from PIL import Image
 import torch
 import torch.nn as nn
 from tqdm.notebook import tqdm
-from models_import import DC_Unet, UNet
+from models_import import UNet
 from torch.utils.data import Dataset
+
+from src.data.massachusetts_dataset import MassachusettsDataset
 
 print("Current working directory:", os.getcwd())
 
@@ -44,49 +43,9 @@ OUT_MODELS_PATH = "./pretrained_models"
 
 
 ################# DATA PREP ##############
-class Massachusetts(Dataset):
-    def __init__(self, image_dir, mask_dir):
-        self.image_paths = sorted(glob(os.path.join(image_dir, '*.tiff')))
-        self.mask_paths = sorted(glob(os.path.join(mask_dir, '*.tif')))
 
-        self.crop_size = 384
-        self.image_size = 1500
-        self.indices = []
-        
-
-        ### Allows 9 patches 384x384 for each 1500x1500 original to be used, only compute once the double loop
-        for i in range(len(self.image_paths)):
-            for y in range(0, self.image_size, self.crop_size):
-                for x in range(0, self.image_size, self.crop_size):
-                    if y + self.crop_size <= self.image_size and x + self.crop_size <= self.image_size:
-                        self.indices.append((i, x, y))
-    
-    def __len__(self):
-        return len(self.indices)  ### allows all crops to be used without change to dataloading or batch handling
-    
-    def __getitem__(self, idx):
-        image_idx, x, y = self.indices[idx]
-        img_path = self.image_paths[image_idx]
-        mask_path = self.mask_paths[image_idx]
-        
-        image = np.array(Image.open(img_path), dtype=np.float32)
-        mask = np.array(Image.open(mask_path), dtype=np.float32)
-        
-
-        image /= 255.0
-        mask /= 255.0
-        
-        # crop to 384x384 as used in main dataset
-        image_crop = image[y:y+self.crop_size, x:x+self.crop_size, :]
-        mask_crop = mask[y:y+self.crop_size, x:x+self.crop_size]
-        
-        #CHW for torch
-        image_crop = np.transpose(image_crop, (2, 0, 1))
-        
-        return torch.from_numpy(image_crop), torch.from_numpy(mask_crop)
-    
-train_dataset = Massachusetts(train_images_path, train_masks_path)
-val_dataset = Massachusetts(test_images_path, test_masks_path)
+train_dataset = MassachusettsDataset(train_images_path, train_masks_path)
+val_dataset = MassachusettsDataset(test_images_path, test_masks_path)
 
 
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, num_workers = NUM_WORKERS, pin_memory = True, shuffle=True)

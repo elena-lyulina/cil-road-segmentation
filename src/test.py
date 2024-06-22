@@ -5,7 +5,7 @@ from PIL import Image
 import numpy as np
 import torch
 
-from src.data.dataset import load_all_from_path, np_to_tensor
+from src.data.utils import load_all_from_path, np_to_tensor
 from src.models.small_UNet.small_UNet import UNet
 from src.submission.mask_to_submission import masks_to_submission, create_submission
 
