@@ -52,7 +52,7 @@ def train(
             optimizer.zero_grad()  # zero out gradients
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
             y_hat = model(x)  # forward pass
-            loss = loss_fn(y_hat, y.unsqueeze(1))
+            loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
 
             if clip_grad is not None:  # clip gradients if needed
@@ -72,7 +72,7 @@ def train(
             for (x, y) in val_dataloader:
                 x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
                 y_hat = model(x)  # forward pass
-                val_loss = loss_fn(y_hat, y.unsqueeze(1))
+                val_loss = loss_fn(y_hat, y)
 
                 # log partial metrics
                 metrics['val_loss'].append(val_loss.item())
@@ -97,7 +97,7 @@ def train(
 
 def get_save_name(save_name: Optional[str], best_val_acc) -> str:
     # making sure it's unique
-    return f"{save_name}_{best_val_acc}_{time.strftime('%Y%m%d-%H%M%S')}"
+    return f"{save_name}_acc{round(best_val_acc, 2)}_date{time.strftime('%d-%m-%Y_%H-%M-%S')}"
 
 
 def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, save_path: Path, name: str, wandb_run):

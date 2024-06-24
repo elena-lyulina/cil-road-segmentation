@@ -1,18 +1,21 @@
+from typing import Tuple
+
 import torch
 
 from src.constants import PATCH_SIZE, CUTOFF
-from src.registry import Registry
+from src.experiments.registry import Registry
 
 METRICS_REGISTRY = Registry()
 
 
-def get_metrics():
+def get_metrics() -> Tuple[dict, dict]:
+    # Returns all the registered
     metrics = {'loss': [], 'val_loss': []}
     for k in METRICS_REGISTRY.keys():
         metrics[k] = []
         metrics['val_' + k] = []
 
-    metric_fns = list(METRICS_REGISTRY.values())
+    metric_fns = METRICS_REGISTRY
     return metrics, metric_fns
 
 

@@ -7,9 +7,9 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from src.constants import WANDB_PROJECT, DEVICE
-from src.data.utils import get_datahandler_class
+from src.data.datahandler import get_datahandler_class
+from src.experiments.registry import import_files_from
 from src.models.utils import get_model_class
-from src.registry import import_files_from
 from src.train.train import train
 from src.train.utils import DEFAULT_TRAIN_CONFIG
 
@@ -19,32 +19,9 @@ import_files_from("data")
 
 PARAM_TO_FILL = "<FILL_ME>"
 
-default_config = {
-    "model": {
-        "name": "UNet",
-        "params": { }
-    },
-    "dataset": {
-        "name": "CILDataset",
-        "params": { }
-    },
-    "train": {
-        "n_epochs": 5,
-        "optimizer": {
-            "name": "Adam",
-            "params": {
-                "lr": 5e-4
-            }
-        },
-        "loss": {
-            "name": "BCELoss",
-            "params": { }
-        }
-    }
-}
-
 
 def run_config(config: dict, save_path: Path, experiment_name: str, name: str, log_wandb: bool = False):
+    # runs the given config: trains a model and saves the results
     import_files_from("models")
     import_files_from("data")
 
@@ -52,7 +29,7 @@ def run_config(config: dict, save_path: Path, experiment_name: str, name: str, l
 
     wandb_run = None
     if log_wandb:
-        wandb_run = wandb.init(reinit=True, config=config, project=WANDB_PROJECT, settings=wandb.Settings(start_method='spawn'), group=f"exp_{experiment_name}", name=name)
+        wandb_run = wandb.init(reinit=True, config=config, project=experiment_name, settings=wandb.Settings(start_method='spawn'), name=name)
 
     model = get_model(config)
     train_dataloader, val_dataloader = get_dataloaders(config)
@@ -64,6 +41,7 @@ def run_config(config: dict, save_path: Path, experiment_name: str, name: str, l
 
 
 def get_model(config: dict) -> nn.Module:
+    # loads a model by name from the config file
     # Todo: add loading from pretrained
     model_name = config["model"]["name"]
     model_params = config["model"]["params"]
@@ -71,6 +49,7 @@ def get_model(config: dict) -> nn.Module:
 
 
 def get_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader]:
+    # loads train/val dataloaders by name from the config file
     # Todo: make the datasets the same format?
     dataset_name = config["dataset"]["name"]
     dataset_params = config["dataset"]["params"]
@@ -79,6 +58,10 @@ def get_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader]:
 
 
 def generate_config(model, dataset, var_name="cur_config") -> dict:
+    # A helper function to generate a config for the given model and datahandler, with some parameters to be filled in.
+    # Just copy the output, paste it wherever and fill the parameters, it should be enough to successfully load
+    # the model and the datahandler with the given parameters.
+    # The training config's structure is [DEFAULT_TRAIN_CONFIG]
     config = {
         "model": {
             "name": model,
@@ -98,6 +81,8 @@ def generate_config(model, dataset, var_name="cur_config") -> dict:
 
 
 def get_params(init_fn) -> dict:
+    # Extracts parameters from the __init__ method with default values if present.
+    # Used to provide all the necessary parameters for model/datahandler classes in configs
     params = inspect.signature(init_fn).parameters
 
     def fill_empy(default_value):
@@ -107,6 +92,7 @@ def get_params(init_fn) -> dict:
 
 
 def format_value(value, indent_level=0, indent=4, indent_char=' '):
+    # To pretty print the config dictionary
     left_indent = indent_char * indent_level
     if isinstance(value, dict):
         items = []
@@ -122,5 +108,6 @@ def format_value(value, indent_level=0, indent=4, indent_char=' '):
         return repr(value)
 
 
+# Run to generate a template config
 if __name__ == "__main__":
     generate_config("small_unet", "cil")

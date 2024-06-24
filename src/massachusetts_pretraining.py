@@ -1,3 +1,4 @@
+# TODO: to be deleted/refactored
 import os
 print("Current working directory:", os.getcwd())
 

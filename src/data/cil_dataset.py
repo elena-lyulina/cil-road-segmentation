@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
-from src.data.utils import np_to_tensor, DATASET_REGISTRY, DataHandler, DATAHANDLER_REGISTRY
+from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
+from src.data.utils import DATASET_REGISTRY, np_to_tensor
 
 
 @DATAHANDLER_REGISTRY.register("cil")

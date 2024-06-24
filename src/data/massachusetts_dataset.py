@@ -8,10 +8,11 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
 from src.constants import DATA_PATH
-from src.data.utils import DataHandler, DATAHANDLER_REGISTRY, DATASET_REGISTRY
+from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
+from src.data.utils import DATASET_REGISTRY
 
 
-# DISCLAIMER: I just copied it from the Elouan's code (what was in massachusetts_pretraining.py) so no guarantees, didn't wandb_run it
+# DISCLAIMER: I just copied it from the Elouan's code (what was in massachusetts_pretraining.py) so no guarantees, didn't run it
 @DATAHANDLER_REGISTRY.register("massachusetts")
 class MassachusettsDataHandler(DataHandler):
     dataset_path = DATA_PATH.joinpath("massachusetts")

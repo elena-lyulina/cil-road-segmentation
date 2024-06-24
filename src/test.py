@@ -1,3 +1,5 @@
+# TODO: to be deleted/refactored
+
 import os
 import cv2
 from glob import glob

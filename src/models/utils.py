@@ -1,6 +1,4 @@
-from torch import nn
-
-from src.registry import Registry
+from src.experiments.registry import Registry
 
 MODEL_REGISTRY = Registry()
 
