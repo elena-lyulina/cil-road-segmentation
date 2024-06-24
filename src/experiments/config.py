@@ -6,7 +6,7 @@ import wandb
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.constants import WANDB_PROJECT, DEVICE
+from src.constants import DEVICE
 from src.data.datahandler import get_datahandler_class
 from src.experiments.registry import import_files_from
 from src.models.utils import get_model_class

@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from src.constants import WANDB_PROJECT
 from src.experiments.config import run_config
 from src.experiments.utils import get_run_name, get_save_path_and_experiment_name
 
@@ -35,6 +34,7 @@ cur_config = {
         'clip_grad': None
     }
 }
+
 
 if __name__ == '__main__':
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
