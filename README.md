@@ -79,13 +79,13 @@ For example, the following config would train a ```small_unet``` model on the ``
 ```
 {
     'model': {
-        'name': 'small_unet',                         // name the model is registered under
+        'name': 'small_unet',                         // a name the model is registered under
         'params': {                                   // all the necessary params to pass into __init__ method of the model implementation,
-            'chs': (3, 64, 128, 256, 512, 1024)       //  may vary for different models
+            'chs': (3, 64, 128, 256, 512, 1024)       // may vary for different models
         }
     },
     'dataset': {
-        'name': 'cil',                                // name the dataset is registered under
+        'name': 'cil',                                // a name the dataset is registered under
         'params': {                                   // all the necessary params to pass to this dataset's datahandler,
             'batch_size': 4,                          // may vary for different datasets
             'shuffle': True,
