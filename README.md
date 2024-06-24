@@ -63,7 +63,7 @@ CIL-ROAD-SEGMENTATION-2024
         |   |───model_1
         |   └───utils.py            // any common code used for implementing the models
         |
-        |───submission              // sumission code
+        |───submission              // submission code
         |
         |───train                   // training the models
         |   |───metrics.py          // metrics calculated during training
@@ -80,7 +80,7 @@ For example, the following config would train a ```small_unet``` model on the ``
 {
     'model': {
         'name': 'small_unet',                         // a name the model is registered under
-        'params': {                                   // all the necessary params to pass into __init__ method of the model implementation,
+        'params': {                                   // all the necessary params to pass into the __init__ method of the model implementation,
             'chs': (3, 64, 128, 256, 512, 1024)       // may vary for different models
         }
     },
@@ -126,7 +126,7 @@ Use this name in a config to train a model on this specific dataset.
 
 ### Implementing a new model
 
-Add a new model implementation in a subfolder under ```src.models```.
+Add a new model implementation in a subfolder under ```src/models```.
 Don't forget to register it in a similar way by adding ```@MODEL_REGISTRY.register("<unique_name>")``` and pray that it works.
 
 ### Training a model
