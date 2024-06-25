@@ -7,6 +7,8 @@ from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from src.models.utils import MODEL_REGISTRY
+
 
 class Block(nn.Module):
     # a repeating structure composed of two convolutional layers with batch normalization and ReLU activations
@@ -22,8 +24,10 @@ class Block(nn.Module):
         return self.block(x)
 
 
+@MODEL_REGISTRY.register('small_unet')
 class UNet(nn.Module):
     # UNet-like architecture for single class semantic segmentation.
+
     def __init__(self, chs=(3,64,128,256,512,1024)):
         super().__init__()
         enc_chs = chs  # number of channels in the encoder

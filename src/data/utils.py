@@ -1,9 +1,23 @@
-import cv2
-import torch
-import numpy as np
-from PIL import Image
 from glob import glob
 
+import numpy as np
+import torch
+from PIL import Image
+
+from src.experiments.registry import Registry
+
+DATASET_REGISTRY = Registry()
+
+
+def get_dataset_class(dataset_name: str):
+    # Returns dataset's class registered under the given name
+    cls = DATASET_REGISTRY.get(dataset_name)
+    if cls is None:
+        raise ValueError(f'Dataset {dataset_name} is not registered')
+    return cls
+
+
+### The following code is taken from the CIL notebook ###
 
 def load_all_from_path(path):
     # loads all HxW .pngs contained in path as a 4D np.array of shape (n_images, H, W, 3)
@@ -42,38 +56,3 @@ def np_to_tensor(x, device):
         return torch.from_numpy(x).cpu()
     else:
         return torch.from_numpy(x).contiguous().pin_memory().to(device=device, non_blocking=True)
-
-
-class ImageDataset(torch.utils.data.Dataset):
-    # dataset class that deals with loading the data and making it available by index.
-
-    def __init__(self, image_paths, mask_paths, patch_size, cutoff, device, use_patches=True, resize_to=(400, 400)):
-        self.items = list(zip(image_paths, mask_paths))
-
-        self.patch_size = patch_size
-        self.cutoff = cutoff
-        self.device = device
-        self.resize_to = resize_to
-
-    def _preprocess(self, x, y):
-        # to keep things simple we will not apply transformations to each sample,
-        # but it would be a very good idea to look into preprocessing
-        return x, y
-
-    def __getitem__(self, item):
-        # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
-        img_path, mask_path = self.items[item]
-        image = np.array(Image.open(img_path))[:, :, :3].astype(np.float32) / 255.
-        mask = np.array(Image.open(mask_path).convert('L')).astype(np.float32) / 255.
-
-        if self.resize_to != (image.shape[0], image.shape[1]):  # resize images
-            image = cv2.resize(image, dsize=self.resize_to)
-            mask = cv2.resize(mask, dsize=self.resize_to)
-
-        image = np.moveaxis(image, -1, 0)  # pytorch works with CHW format instead of HWC
-        mask = np.reshape(mask, (mask.shape[0], mask.shape[1], 1))
-        mask = np.moveaxis(mask, -1, 0)  # pytorch works with CHW format instead of HWC
-        return self._preprocess(np_to_tensor(image, self.device), np_to_tensor(mask, self.device))
-
-    def __len__(self):
-        return len(self.items)
