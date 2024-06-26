@@ -2,3 +2,4 @@ data/*/*/*
 cil-rs/
 !data/
 **/wandb/
+*.pyc

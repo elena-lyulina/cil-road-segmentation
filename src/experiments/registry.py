@@ -66,6 +66,6 @@ def import_files_from(dir: str):
     # A bit ugly but we need to import all implementations to be able to find them via registry
     pwd = SRC_PATH.joinpath(dir)
     for x in pwd.rglob('*.py'):
-        module_name = relpath(x, ROOT_PATH)[:-3].replace('/', '.')
+        module_name = relpath(x, ROOT_PATH)[:-3].replace('/', '.').replace('\\', '.')
         if not basename(x).startswith('__'):
             __import__(module_name, globals(), locals())

@@ -1,19 +1,23 @@
-"""Using pre-trained VGG for base model"""
-"""Source model: https://arxiv.org/pdf/1411.4038"""
-
-
-
+from src.models.utils import MODEL_REGISTRY
+import os
+import time
 
 import numpy as np
-from tqdm import tqdm
 import torch
+from matplotlib import pyplot as plt
 import torch.nn as nn
 import torchvision.models as models
-import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-import matplotlib.pyplot as plt
+from tqdm import tqdm
+import torch.optim as optim
 
+
+
+
+@MODEL_REGISTRY.register('fcn_8')
 class FCN8s(nn.Module):
+    """Using pre-trained VGG for base model
+    Source model: https://arxiv.org/pdf/1411.4038"""
     def __init__(self, num_classes=21):
         super(FCN8s, self).__init__()
 
@@ -84,8 +88,8 @@ class FCN8s(nn.Module):
 
 def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs):
     # Initialize TensorBoard writer
-    logdir = './models/small_UNet/tensorboard/net'
-    writer = SummaryWriter()
+    logdir = './models/fcn_8/tensorboard/net'
+    writer = SummaryWriter(logdir)
 
     # Initialize lists to keep track of metrics
     train_loss_history = []
@@ -156,6 +160,16 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
 
     writer.close()
     
+    print('Finished Training, saving model.')
+    model_path = './models/fcn_8/checkpoints'
+    if not os.path.exists(model_path):
+        os.mkdir(model_path)
+    torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict()
+                }, model_path + f'/model_{time.strftime("%Y%m%d-%H%M%S")}.pth')
+    print('Model saved.')
+
     # Plot loss curves
     plt.figure(figsize=(10, 5))
     plt.plot(train_loss_history, label='Training Loss')
@@ -166,24 +180,24 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
     plt.title('Loss Curves')
     plt.show()
 
-    return model, train_loss_history, val_loss_history, train_metrics_history, val_metrics_history
+#     return model, train_loss_history, val_loss_history, train_metrics_history, val_metrics_history
 
 
-def test():
-    model = FCN8s(num_classes=21)
-    # Batch size 1, 3 color channels, 224x224 image
-    input_tensor = torch.randn(1, 3, 224, 224)
-    output = model(input_tensor)
-    print(output.shape) 
+# def test():
+#     model = FCN8s(num_classes=21)
+#     # Batch size 1, 3 color channels, 224x224 image
+#     input_tensor = torch.randn(1, 3, 224, 224)
+#     output = model(input_tensor)
+#     print(output.shape) 
 
-    # test-train
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    metric_fns = {
-        'accuracy': lambda outputs, targets: (outputs.argmax(1) == targets).float().mean()
-    }
-    train_dataloader = ...  # Replace with actual DataLoader
-    eval_dataloader = ...   # Replace with actual DataLoader
+#     # test-train
+#     loss_fn = nn.CrossEntropyLoss()
+#     optimizer = optim.Adam(model.parameters(), lr=0.001)
+#     metric_fns = {
+#         'accuracy': lambda outputs, targets: (outputs.argmax(1) == targets).float().mean()
+#     }
+#     train_dataloader = ...  # Replace with actual DataLoader
+#     eval_dataloader = ...   # Replace with actual DataLoader
 
-    n_epochs = 10
-    train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs)
+#     n_epochs = 10
+#     train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs)
