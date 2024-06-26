@@ -4,7 +4,7 @@ import time
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from src.models.utils import MODEL_REGISTRY
@@ -59,8 +59,6 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
 
 
     # training loop
-    logdir = './models/small_UNet/tensorboard/net'
-    writer = SummaryWriter(logdir)  # tensorboard writer (can also log images)
 
     history = {}  # collects metrics at the end of each epoch
 
@@ -102,8 +100,6 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
 
         # summarize metrics, log to tensorboard and display
         history[epoch] = {k: sum(v) / len(v) for k, v in metrics.items()}
-        for k, v in history[epoch].items():
-          writer.add_scalar(k, v, epoch)
         print(' '.join(['\t- '+str(k)+' = '+str(v)+'\n ' for (k, v) in history[epoch].items()]))
         # show_val_samples(x.detach().cpu().numpy(), y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 

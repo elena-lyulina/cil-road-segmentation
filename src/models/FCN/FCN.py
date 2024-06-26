@@ -7,7 +7,6 @@ import torch
 from matplotlib import pyplot as plt
 import torch.nn as nn
 import torchvision.models as models
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import torch.optim as optim
 
@@ -87,10 +86,6 @@ class FCN8s(nn.Module):
 
 
 def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimizer, n_epochs):
-    # Initialize TensorBoard writer
-    logdir = './models/fcn_8/tensorboard/net'
-    writer = SummaryWriter(logdir)
-
     # Initialize lists to keep track of metrics
     train_loss_history = []
     val_loss_history = []
@@ -120,12 +115,6 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
             for metric_name, metric_fn in metric_fns.items():
                 running_metrics[metric_name] += metric_fn(outputs, targets).item()
 
-            if i % 10 == 9:    # Log every 10 mini-batches
-                writer.add_scalar('Training Loss', running_loss / 10, epoch * len(train_dataloader) + i)
-                for metric_name in metric_fns:
-                    writer.add_scalar(f'Training {metric_name}', running_metrics[metric_name] / 10, epoch * len(train_dataloader) + i)
-                running_loss = 0.0
-                running_metrics = {metric: 0.0 for metric in metric_fns}
 
         # Collect metrics at the end of the epoch
         train_loss_history.append(running_loss / len(train_dataloader))
@@ -152,14 +141,9 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
             val_metrics_history[metric_name].append(val_running_metrics[metric_name] / len(eval_dataloader))
 
         # Log to TensorBoard
-        writer.add_scalar('Validation Loss', val_running_loss / len(eval_dataloader), epoch)
-        for metric_name in metric_fns:
-            writer.add_scalar(f'Validation {metric_name}', val_running_metrics[metric_name] / len(eval_dataloader), epoch)
         
         print(f'Epoch {epoch+1}/{n_epochs}, Train Loss: {train_loss_history[-1]}, Validation Loss: {val_loss_history[-1]}')
 
-    writer.close()
-    
     print('Finished Training, saving model.')
     model_path = './models/fcn_8/checkpoints'
     if not os.path.exists(model_path):
@@ -169,16 +153,6 @@ def train(train_dataloader, eval_dataloader, model, loss_fn, metric_fns, optimiz
                 'optimizer_state_dict': optimizer.state_dict()
                 }, model_path + f'/model_{time.strftime("%Y%m%d-%H%M%S")}.pth')
     print('Model saved.')
-
-    # Plot loss curves
-    plt.figure(figsize=(10, 5))
-    plt.plot(train_loss_history, label='Training Loss')
-    plt.plot(val_loss_history, label='Validation Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.title('Loss Curves')
-    plt.show()
 
 #     return model, train_loss_history, val_loss_history, train_metrics_history, val_metrics_history
 

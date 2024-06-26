@@ -3,3 +3,4 @@ cil-rs/
 !data/
 **/wandb/
 *.pyc
+src/experiments/*/results/
