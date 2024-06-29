@@ -4,3 +4,4 @@ cil-rs/
 **/wandb/
 *.pyc
 src/experiments/*/results/
+src/experiments/vansh
