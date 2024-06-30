@@ -5,11 +5,10 @@ Partially taken from https://www.towardsdeeplearning.com/dinov2-for-custom-datas
 from src.models.utils import MODEL_REGISTRY
 import torch
 from transformers import Dinov2Model, Dinov2PreTrainedModel
-from transformers.modeling_outputs import SemanticSegmenterOutput
 
 
 class LinearClassifier(torch.nn.Module):
-    def __init__(self, in_channels, tokenW=32, tokenH=32, num_labels=1):
+    def __init__(self, in_channels, tokenW=27, tokenH=27, num_labels=1):
         super(LinearClassifier, self).__init__()
 
         self.in_channels = in_channels
@@ -25,14 +24,15 @@ class LinearClassifier(torch.nn.Module):
 
 
 @MODEL_REGISTRY.register("dino_plus")
-class Dinov2ForSemanticSegmentation(Dinov2PreTrainedModel):
-    def __init__(self, config="facebook/dinov2-base"):
-        super().__init__(config)
+# class Dinov2ForSemanticSegmentation(Dinov2PreTrainedModel):
+class Dinov2ForSemanticSegmentation(torch.nn.Module):
+    def __init__(self, config="facebook/dinov2-base", hidden_size=768, num_labels=1):
+        super().__init__()
 
-        self.dinov2 = Dinov2Model(config)
+        self.dinov2 = Dinov2Model.from_pretrained(config)
         self.classifier = LinearClassifier(
-            config.hidden_size, 32, 32, config.num_labels
-        )
+            hidden_size, 27, 27, num_labels
+        )  # 27 because DINO returns 729 patches
         self._freeze_dinov2_parameters()
 
     def _freeze_dinov2_parameters(self):
@@ -55,15 +55,15 @@ class Dinov2ForSemanticSegmentation(Dinov2PreTrainedModel):
         )
         # get the patch embeddings - so we exclude the CLS token
         patch_embeddings = outputs.last_hidden_state[:, 1:, :]
-        print(patch_embeddings.shape)
-        raise
         # convert to logits and upsample to the size of the pixel values
         logits = self.classifier(patch_embeddings)
-        logits = torch.nn.functional.interpolate(
+        out = torch.nn.functional.interpolate(
             logits, size=pixel_values.shape[2:], mode="bilinear", align_corners=False
         )
+        min_val, max_val = (torch.min(out), torch.max(out))
+        out = (out - min_val) / (max_val - min_val)
 
-        return logits
+        return out
 
 
 # # We can instantiate the model as follows:
