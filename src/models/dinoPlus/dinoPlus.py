@@ -64,22 +64,3 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
         out = (out - min_val) / (max_val - min_val)
 
         return out
-
-
-# # We can instantiate the model as follows:
-
-# model = Dinov2ForSemanticSegmentation.from_pretrained(
-#     "facebook/dinov2-base", id2label=id2label, num_labels=len(id2label)
-# )
-
-# # Important: we don't want to train the DINOv2 backbone, only the linear classification head. Hence we don't want to track any gradients for the backbone parameters. This will greatly save us in terms of memory used:
-
-# for name, param in model.named_parameters():
-#     if name.startswith("dinov2"):
-#         param.requires_grad = False
-
-# # Let's perform a forward pass on a random batch, to verify the shape of the logits, verify we can calculate a loss:
-
-# outputs = model(pixel_values=batch["pixel_values"], labels=batch["labels"])
-# print(outputs.logits.shape)
-# print(outputs.loss)
