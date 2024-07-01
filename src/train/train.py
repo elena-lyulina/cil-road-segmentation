@@ -1,7 +1,7 @@
 import json
-import time
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import torch
 from torch import nn
@@ -81,8 +81,7 @@ def train(
 
         # summarize and display metrics
         history[epoch] = {k: sum(v) / len(v) for k, v in metrics.items()}
-        for k, v in history[epoch].items():
-            print(' '.join(['\t- ' + str(k) + ' = ' + str(v) + '\n ' for (k, v) in history[epoch].items()]))
+        print(' '.join(['\t- ' + str(k) + ' = ' + str(v) + '\n ' for (k, v) in history[epoch].items()]))
 
         best_val_acc = max(history[epoch]['val_acc'], best_val_acc)
 
@@ -96,14 +95,17 @@ def train(
 
 
 def get_save_name(save_name: Optional[str], best_val_acc) -> str:
-    # making sure it's unique
-    return f"{save_name}_acc{round(best_val_acc, 2)}_date{time.strftime('%d-%m-%Y_%H-%M-%S')}"
+    # making sure it's unique, the date is up to 5 milliseconds
+    unique_date = datetime.utcnow().strftime('%d-%m-%Y_%H-%M-%S_%f')[:-5]
+    return f"{save_name}_acc{round(best_val_acc, 2)}_date{unique_date}".replace('.', '-')
 
 
 def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, save_path: Path, name: str, wandb_run):
-    save_path.parent.mkdir(parents=True, exist_ok=True)
+    save_path.mkdir(parents=True, exist_ok=True)
     config_path = save_path.joinpath(f'{name}.json')
     model_path = save_path.joinpath(f'{name}.pth')
+
+    config_path, model_path = make_sure_unique([config_path, model_path])
 
     # save config
     with open(config_path, 'w') as f:
@@ -115,7 +117,20 @@ def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer,
         'optimizer_state_dict': optimizer.state_dict()
     }, model_path)
 
+    print(f'Saved model to {model_path}')
+
     # save to wandb
     if wandb_run:
         wandb_run.save(config_path)
         wandb_run.save(model_path)
+
+
+# just to be absolutely sure it's unique
+def make_sure_unique(paths: List[Path]) -> List[Path]:
+    new_paths = paths
+    inc = 0
+    while any(path.exists() for path in new_paths):
+        new_paths = [path.with_name(f"{path.stem}_{inc}{path.suffix}") for path in paths]
+        inc += 1
+    return new_paths
+
