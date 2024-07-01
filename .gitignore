@@ -2,3 +2,6 @@ data/*/*/*
 cil-rs/
 !data/
 **/wandb/
+*.pyc
+src/experiments/*/results/
+src/experiments/vansh
