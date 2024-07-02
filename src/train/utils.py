@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import src.train.loss as loss
 
 ### TRAIN CONFIG UTIL ###
 
@@ -33,4 +34,6 @@ def get_loss(config: dict):
     match config["train"]["loss"]["name"]:
         case "BCELoss":
             return nn.BCELoss(**params)
+        case "DiceBCELoss":
+            return loss.dice_bce_loss()
 
