@@ -25,6 +25,7 @@ def train(
         save_path: Path,
         save_name: str,
         wandb_run=None,
+        save_wandb: bool = True,
 ):
     # training loop
 
@@ -91,7 +92,7 @@ def train(
 
     print('Finished Training')
     save_name = get_save_name(save_name, best_val_acc)
-    save_model(config, model, optimizer, save_path, save_name, wandb_run)
+    save_model(config, model, optimizer, save_path, save_name, wandb_run, save_wandb)
 
 
 def get_save_name(save_name: Optional[str], best_val_acc) -> str:
@@ -100,7 +101,7 @@ def get_save_name(save_name: Optional[str], best_val_acc) -> str:
     return f"{save_name}_acc{round(best_val_acc, 2)}_date{unique_date}".replace('.', '-')
 
 
-def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, save_path: Path, name: str, wandb_run):
+def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, save_path: Path, name: str, wandb_run, save_wandb: bool):
     save_path.mkdir(parents=True, exist_ok=True)
     config_path = save_path.joinpath(f'{name}.json')
     model_path = save_path.joinpath(f'{name}.pth')
@@ -120,7 +121,7 @@ def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer,
     print(f'Saved model to {model_path}')
 
     # save to wandb
-    if wandb_run:
+    if wandb_run and save_wandb:
         wandb_run.save(config_path)
         wandb_run.save(model_path)
 
