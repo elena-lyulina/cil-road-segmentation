@@ -1,4 +1,5 @@
 import inspect
+import json
 from pathlib import Path
 from typing import Tuple
 
@@ -6,7 +7,7 @@ import wandb
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.constants import DEVICE
+from src.constants import DEVICE, WANDB_ENTITY
 from src.data.datahandler import get_datahandler_class
 from src.experiments.registry import import_files_from
 from src.models.utils import get_model_class
@@ -14,6 +15,7 @@ from src.train.train import train
 from src.train.utils import DEFAULT_TRAIN_CONFIG
 
 # For Registry to work correctly, we need to first import all implementations
+# If you don't want to import everything, comment it out and only import the models / datahandlers you're using
 import_files_from("models")
 import_files_from("data")
 
@@ -22,14 +24,12 @@ PARAM_TO_FILL = "<FILL_ME>"
 
 def run_config(config: dict, save_path: Path, experiment_name: str, name: str, log_wandb: bool = False):
     # runs the given config: trains a model and saves the results
-    import_files_from("models")
-    import_files_from("data")
-
     print(f"Running experiment {experiment_name}, model {name}\nResults will be saved to {save_path}\n")
+    print(json.dumps(config, indent=4))
 
     wandb_run = None
     if log_wandb:
-        wandb_run = wandb.init(reinit=True, config=config, project=experiment_name, settings=wandb.Settings(start_method='spawn'), name=name)
+        wandb_run = wandb.init(entity=WANDB_ENTITY, reinit=True, config=config, project=experiment_name, name=name)
 
     model = get_model(config)
     train_dataloader, val_dataloader = get_dataloaders(config)
