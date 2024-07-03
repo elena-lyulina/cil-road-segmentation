@@ -5,19 +5,11 @@ import src.train.loss as loss
 ### TRAIN CONFIG UTIL ###
 
 DEFAULT_TRAIN_CONFIG = {
-        "n_epochs": 5,
-        "optimizer": {
-            "name": "Adam",
-            "params": {
-                "lr": 5e-4
-            }
-        },
-        "loss": {
-            "name": "BCELoss",
-            "params": { }
-        },
-        "clip_grad": None
-    }
+    "n_epochs": 5,
+    "optimizer": {"name": "Adam", "params": {"lr": 5e-4}},
+    "loss": {"name": "BCELoss", "params": {}},
+    "clip_grad": None,
+}
 
 
 def get_optimizer(config: dict, model: nn.Module) -> torch.optim.Optimizer:
@@ -36,4 +28,5 @@ def get_loss(config: dict):
             return nn.BCELoss(**params)
         case "DiceBCELoss":
             return loss.dice_bce_loss()
-
+        case "FocalTverskyLoss":
+            return loss.FocalTverskyLoss(**params)

@@ -60,7 +60,7 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
         out = torch.nn.functional.interpolate(
             logits, size=pixel_values.shape[2:], mode="bilinear", align_corners=False
         )
-        min_val, max_val = (torch.min(out), torch.max(out))
-        out = (out - min_val) / (max_val - min_val)
-
+        # min_val, max_val = (torch.min(out), torch.max(out))
+        # out = (out - min_val) / (max_val - min_val)
+        out = torch.sigmoid(out)
         return out

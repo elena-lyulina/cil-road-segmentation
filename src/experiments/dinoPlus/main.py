@@ -16,7 +16,7 @@ cur_config = {
         "params": {"batch_size": 4, "shuffle": True, "resize_to": (384, 384)},
     },
     "train": {
-        "n_epochs": 1,
+        "n_epochs": 10,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
