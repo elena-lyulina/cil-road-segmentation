@@ -20,7 +20,7 @@ import_files_from("data")
 PARAM_TO_FILL = "<FILL_ME>"
 
 
-def run_config(config: dict, save_path: Path, experiment_name: str, name: str, log_wandb: bool = False):
+def run_config(config: dict, save_path: Path, experiment_name: str, name: str, log_wandb: bool = False, save_wandb: bool = True):
     # runs the given config: trains a model and saves the results
     import_files_from("models")
     import_files_from("data")
@@ -34,7 +34,7 @@ def run_config(config: dict, save_path: Path, experiment_name: str, name: str, l
     model = get_model(config)
     train_dataloader, val_dataloader = get_dataloaders(config)
 
-    train(config, model, train_dataloader, val_dataloader, save_path, name, wandb_run=wandb_run)
+    train(config, model, train_dataloader, val_dataloader, save_path, name, wandb_run=wandb_run, save_wandb=save_wandb)
 
     if wandb_run:
         wandb_run.finish()
