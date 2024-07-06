@@ -52,8 +52,9 @@ CIL-ROAD-SEGMENTATION-2024
         |   └───utils.py            // any common functions used for datasets
         |
         |───experiments             // all experiments we've done
-        |   |───exp_1
+        |   |───example
         |   |   |───results         // results of the experiment: trained models, etc
+        |   |   |───finetune.py     // finetuning a model
         |   |   |───main.py         // running the experiment
         |   |   └───sweep.py        // running a sweep
         |   |
@@ -161,6 +162,15 @@ Double check that you have added the required annotations for the model, the dat
 If that doesn't help, try explicitly import these classes in the ```src/experiments/config.py``` file, since the registry only works with the classes it can see.
 However, this should work by default as long as you added your implementations under ```src/models``` and ```src/data``` folders.  
 
+### Training a pretrained model
+It is also possible to fine-tune a pretrained model on more data.
+For that you need to have the config file of the pretrained model and the model file itself.
+
+First, generate the fine-tuning config by running `src.experiments.config.generate_finetuning_config`,
+passing the path to the config file and the name of the dataset to fine-tune it on. 
+
+Then you can run this config the same way as before. 
+
 ### Testing a model
 ...to be implemented...
 ### Submitting a model
@@ -185,7 +195,7 @@ After that, log your runs by passing ```log_wandb=True``` to ```src.experiments.
 ### W & B: Tune Hyperparameters
 
 You can easily [run a sweep](https://docs.wandb.ai/guides/sweeps) with Weights & Biases to try out different hyperparameters for your model. 
-Look at `src/experiments/small_Unet/sweep.py` for an example, or follow these steps:
+Look at `src/experiments/example/sweep.py` for an example, or follow these steps:
 
 
 **Step 1.** Prepare a config by first generating a usual one and then changing the parameters you want to tune

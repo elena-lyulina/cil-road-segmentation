@@ -3,7 +3,7 @@ import json
 from src.experiments.sweep_config import get_sweep_config, init_sweep, run_sweep_agent
 from src.experiments.utils import get_save_path_and_experiment_name
 
-### Step 1. modify the parameteres to tune
+### Step 1. generate a usual config and modify the parameteres to tune
 cur_config = {
     'model': {
         'name': 'small_unet',
@@ -24,7 +24,7 @@ cur_config = {
         'optimizer': {
             'name': 'Adam',
             'params': {
-                "SWEEP_lr": {  # a distribution of possible values for sweep
+                "SWEEP_lr": {  # a distribution of possible values for a sweep
                     'distribution': 'uniform',
                     'min': 0.001,
                     'max': 0.1
@@ -35,7 +35,7 @@ cur_config = {
             'name': 'BCELoss',
             'params': { }
         },
-        'SWEEP_clip_grad': { # a list of possible values for sweep
+        'SWEEP_clip_grad': { # a list of possible values for a sweep
             'values': [None, 1]
         }
     }
