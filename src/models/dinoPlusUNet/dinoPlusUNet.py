@@ -26,7 +26,7 @@ class ConvBlock(nn.Module):
         return self.block(x)
 
 class UNetClassifier(torch.nn.Module):
-    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(4, 64, 128, 256, 512, 1024)):
+    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(6, 64, 128, 256, 512, 1024)):
         super(UNetClassifier, self).__init__()
 
         enc_chs = chs  # number of channels in the encoder
@@ -65,10 +65,10 @@ class UNetClassifier(torch.nn.Module):
         embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
         embeddings = embeddings.permute(0, 3, 1, 2)
 
-        x = self.l_classifier(embeddings)
-        x = torch.nn.functional.interpolate(
-            x, size=pixel_values.shape[2:], mode="bilinear", align_corners=False
-        )
+        x = self.init_upsampling1(embeddings)
+        x = self.init_upsampling2(x)
+        x = nn.functional.pad(x, (1, 1, 1, 1))
+        x = self.linear(x)
 
         x = torch.cat((x, pixel_values), dim=1)
 
