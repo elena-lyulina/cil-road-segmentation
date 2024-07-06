@@ -26,7 +26,7 @@ class ConvBlock(nn.Module):
         return self.block(x)
 
 class UNetClassifier(torch.nn.Module):
-    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(6, 64, 128, 256, 512, 1024)):
+    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(4, 64, 128, 256, 512, 1024)):
         super(UNetClassifier, self).__init__()
 
         enc_chs = chs  # number of channels in the encoder
@@ -59,16 +59,16 @@ class UNetClassifier(torch.nn.Module):
             nn.Conv2d(dec_chs[-1], 1, 1), nn.Sigmoid()
         )  # 1x1 convolution for producing the output-
 
+        self.l_classifier = torch.nn.Conv2d(in_channels, num_labels, (1, 1))
 
     def forward(self, embeddings, pixel_values):
         embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
         embeddings = embeddings.permute(0, 3, 1, 2)
 
-        # Change upsampling (e.g. other unlearned...)
-        x = self.init_upsampling1(embeddings)
-        x = self.init_upsampling2(x)
-        x = nn.functional.pad(x, (1, 1, 1, 1))
-        x = self.linear(x)
+        x = self.l_classifier(embeddings)
+        x = torch.nn.functional.interpolate(
+            x, size=pixel_values.shape[2:], mode="bilinear", align_corners=False
+        )
 
         x = torch.cat((x, pixel_values), dim=1)
 
@@ -125,6 +125,6 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
         out = self.classifier(patch_embeddings, pixel_values)
         # min_val, max_val = (torch.min(out), torch.max(out))
         # out = (out - min_val) / (max_val - min_val)
-        out = torch.nn.functional.sigmoid(out)
+        # out = torch.nn.functional.sigmoid(out)
 
         return out
