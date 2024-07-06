@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from src.experiments.config import run_config
 from src.experiments.utils import get_run_name, get_save_path_and_experiment_name
 

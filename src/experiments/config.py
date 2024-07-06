@@ -22,22 +22,28 @@ import_files_from("data")
 PARAM_TO_FILL = "<FILL_ME>"
 
 
-def run_config(config: dict, save_path: Path, experiment_name: str, name: str, log_wandb: bool = False, save_wandb: bool = True):
-    # runs the given config: trains a model and saves the results
-    print(f"Running experiment {experiment_name}, model {name}\nResults will be saved to {save_path}\n")
-    print(json.dumps(config, indent=4))
+def run_config(config: dict, save_path: Path, experiment_name: str, run_name: str, log_wandb: bool = False, save_wandb: bool = True):
+    print(f"Running experiment {experiment_name}, run {run_name}\nResults will be saved locally to {save_path}\n")
 
     wandb_run = None
     if log_wandb:
-        wandb_run = wandb.init(entity=WANDB_ENTITY, reinit=True, config=config, project=experiment_name, name=name)
+        wandb_run = wandb.init(entity=WANDB_ENTITY, reinit=True, config=config, project=experiment_name, name=run_name)
+
+    parse_config_and_train(config, save_path, run_name, wandb_run, save_wandb)
+
+    if wandb_run:
+        wandb_run.finish()
+
+
+def parse_config_and_train(config: dict, save_path: Path, run_name: str, wandb_run = None, save_wandb: bool = True):
+    # extracts models / datasets, trains a model, and saves the results
+    print(json.dumps(config, indent=4))
 
     model = get_model(config)
     train_dataloader, val_dataloader = get_dataloaders(config)
 
-    train(config, model, train_dataloader, val_dataloader, save_path, name, wandb_run=wandb_run, save_wandb=save_wandb)
-
-    if wandb_run:
-        wandb_run.finish()
+    train(config, model, train_dataloader, val_dataloader, save_path, run_name, wandb_run=wandb_run,
+          save_wandb=save_wandb)
 
 
 def get_model(config: dict) -> nn.Module:
