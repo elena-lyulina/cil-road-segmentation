@@ -52,11 +52,15 @@ CIL-ROAD-SEGMENTATION-2024
         |   └───utils.py            // any common functions used for datasets
         |
         |───experiments             // all experiments we've done
-        |   |───exp_1
+        |   |───example
         |   |   |───results         // results of the experiment: trained models, etc
-        |   |   └───main.py         // running the experiment
+        |   |   |───finetune.py     // finetuning a model
+        |   |   |───main.py         // running the experiment
+        |   |   └───sweep.py        // running a sweep
+        |   |
         |   |───config.py           // common code to configure an experiment
         |   |───registry.py         // means to register datasets, models, any other params for running an experiment
+        |   |───sweep_config.py     // sweep configuration 
         |   └───utils.py            // any common code used for running the experiments
         |
         |───models                  // implementation of the models
@@ -158,6 +162,15 @@ Double check that you have added the required annotations for the model, the dat
 If that doesn't help, try explicitly import these classes in the ```src/experiments/config.py``` file, since the registry only works with the classes it can see.
 However, this should work by default as long as you added your implementations under ```src/models``` and ```src/data``` folders.  
 
+### Training a pretrained model
+It is also possible to fine-tune a pretrained model on more data.
+For that you need to have the config file of the pretrained model and the model file itself.
+
+First, generate the fine-tuning config by running `src.experiments.config.generate_finetuning_config`,
+passing the path to the config file and the name of the dataset to fine-tune it on. 
+
+Then you can run this config the same way as before. 
+
 ### Testing a model
 ...to be implemented...
 ### Submitting a model
@@ -178,6 +191,32 @@ wandb login
 ```
 
 After that, log your runs by passing ```log_wandb=True``` to ```src.experiments.config.run_config```.
+
+### W & B: Tune Hyperparameters
+
+You can easily [run a sweep](https://docs.wandb.ai/guides/sweeps) with Weights & Biases to try out different hyperparameters for your model. 
+Look at `src/experiments/example/sweep.py` for an example, or follow these steps:
+
+
+**Step 1.** Prepare a config by first generating a usual one and then changing the parameters you want to tune
+by adding a prefix `"SWEEP_"` to their name and providing a list of values / distribution to try out.
+
+For example, 
+```json
+"lr": 0.01    =>    "SWEEP_lr": { "values" : [0.001, 0.05, 0.01] }
+                         
+              OR
+                
+"lr": 0.01    =>    "SWEEP_lr": { "distribution": "uniform", "min": 0.001, "max": 0.1 }
+```
+
+**Step 2.** Create a sweep config by running `src.src.experiments.sweep_config.get_sweep_config`, and use it 
+to initialize a sweep by running `src.experiments.sweep_config.init_sweep`.
+
+Use the created sweep id for the next step.
+
+**Step 3.** Now, you can run an agent for the created sweep by passing the received sweep id into `src.experiments.sweep_config.run_sweep_agent`,
+specifying the number of runs to try. 
 
 
 ### Links: 

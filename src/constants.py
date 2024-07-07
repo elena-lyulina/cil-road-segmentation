@@ -23,4 +23,7 @@ PATCH_SIZE = 16
 CUTOFF = 0.25
 
 
+### WANDB ###
+WANDB_ENTITY = 'eth-cil-road-segmentation'
+
 
