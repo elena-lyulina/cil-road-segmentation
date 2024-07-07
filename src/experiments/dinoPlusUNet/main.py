@@ -13,10 +13,10 @@ cur_config = {
     },
     "dataset": {
         "name": "cil",
-        "params": {"batch_size": 4, "shuffle": True, "resize_to": (400, 400)},
+        "params": {"batch_size": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]},
     },
     "train": {
-        "n_epochs": 10,
+        "n_epochs": 30,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
