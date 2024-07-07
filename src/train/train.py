@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import torch
 from torch import nn
@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.constants import DEVICE
+from src.models.utils import get_model
 from src.train.metrics import get_metrics
 from src.train.utils import get_optimizer, get_loss
 
@@ -20,6 +21,7 @@ from src.train.utils import get_optimizer, get_loss
 def train(
         config: dict,
         model: nn.Module,
+        optimizer: torch.optim.Optimizer,
         train_dataloader: DataLoader,
         val_dataloader: DataLoader,
         save_path: Path,
@@ -32,7 +34,6 @@ def train(
     # reading config
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
-    optimizer = get_optimizer(config, model)
     loss_fn = get_loss(config)
 
     history = {}  # collects metrics at the end of each epoch
@@ -92,7 +93,7 @@ def train(
 
     print('Finished Training')
     save_name = get_save_name(save_name, best_val_acc)
-    save_model(config, model, optimizer, save_path, save_name, wandb_run, save_wandb)
+    save_model(config, model, optimizer, n_epochs, save_path, save_name, wandb_run, save_wandb)
 
 
 def get_save_name(save_name: Optional[str], best_val_acc) -> str:
@@ -101,7 +102,7 @@ def get_save_name(save_name: Optional[str], best_val_acc) -> str:
     return f"{save_name}_acc{round(best_val_acc, 2)}_date{unique_date}".replace('.', '-')
 
 
-def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, save_path: Path, name: str, wandb_run, save_wandb: bool):
+def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer, epoch: int, save_path: Path, name: str, wandb_run, save_wandb: bool):
     save_path.mkdir(parents=True, exist_ok=True)
     config_path = save_path.joinpath(f'{name}.json')
     model_path = save_path.joinpath(f'{name}.pth')
@@ -113,12 +114,7 @@ def save_model(config: dict, model: nn.Module, optimizer: torch.optim.Optimizer,
         json.dump(config, f, indent=4)
 
     # save the model
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }, model_path)
-
-    print(f'Saved model to {model_path}')
+    save_checkpoint(model, optimizer, epoch, model_path)
 
     # save to wandb
     if wandb_run and save_wandb:
@@ -134,4 +130,32 @@ def make_sure_unique(paths: List[Path]) -> List[Path]:
         new_paths = [path.with_name(f"{path.stem}_{inc}{path.suffix}") for path in paths]
         inc += 1
     return new_paths
+
+
+def save_checkpoint(model: nn.Module, optimizer: torch.optim.Optimizer, epoch: int, save_path: Path):
+    # check https://pytorch.org/tutorials/beginner/saving_loading_models.html
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, save_path)
+    print(f'Saved model to {save_path}')
+
+
+def load_checkpoint(model_path: Path) -> Tuple[ nn.Module, torch.optim.Optimizer]:
+    # We need the config to restore the model and the optimizer classes
+    config_path = model_path.with_suffix('.json')
+    config = json.loads(config_path.read_bytes())
+
+    checkpoint = torch.load(model_path)
+
+    model = get_model(config)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    optimizer = get_optimizer(config, model)
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    return model, optimizer
+
+
 
