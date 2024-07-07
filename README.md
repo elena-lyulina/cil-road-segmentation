@@ -202,7 +202,7 @@ Look at `src/experiments/example/sweep.py` for an example, or follow these steps
 by adding a prefix `"SWEEP_"` to their name and providing a list of values / distribution to try out.
 
 For example, 
-```json
+```
 "lr": 0.01    =>    "SWEEP_lr": { "values" : [0.001, 0.05, 0.01] }
                          
               OR
