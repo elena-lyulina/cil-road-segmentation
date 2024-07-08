@@ -30,12 +30,7 @@ class UNetClassifier(torch.nn.Module):
         super(UNetClassifier, self).__init__()
 
         enc_chs = chs  # number of channels in the encoder
-        # dec_chs = chs[::-1][:-1]  # number of channels in the decoder
-        upconv_chs_in = [1792, 702, 303, 140, 67]
-        upconv_chs_out = [896, 351, 151, 70, 33]
-        dec_chs_in = [1408, 607, 279, 134, 67]
-        dec_chs_out = [702, 303, 140, 67, 67]
-
+        dec_chs = chs[::-1][:-1]  # number of channels in the decoder
 
         self.in_channels = in_channels
         self.width = tokenW
@@ -53,21 +48,23 @@ class UNetClassifier(torch.nn.Module):
         self.linear2 = nn.Conv2d(in_channels=768, out_channels=768, stride=1,
                                  kernel_size=2, padding=0)
 
+        self.combine_linear = nn.Conv2d(in_channels=1792, out_channels=1024, stride=1, kernel_size=1, padding=0)
+
         self.enc_blocks = nn.ModuleList(
             [ConvBlock(in_ch, out_ch) for in_ch, out_ch in zip(enc_chs[:-1], enc_chs[1:])]
         )  # encoder blocks
         self.pool = nn.MaxPool2d(2)
         self.upconvs = nn.ModuleList([
                 nn.ConvTranspose2d(in_ch, out_ch, 2, 2)
-                for in_ch, out_ch in zip(upconv_chs_in, upconv_chs_out)
+                for in_ch, out_ch in zip(dec_chs[:-1], dec_chs[1:])
             ])
         # deconvolution
         self.dec_blocks = nn.ModuleList(
-            [ConvBlock(in_ch, out_ch) for in_ch, out_ch in zip(dec_chs_in, dec_chs_out)]
+            [ConvBlock(in_ch, out_ch) for in_ch, out_ch in zip(dec_chs[:-1], dec_chs[1:])]
         )  # decoder blocks
 
         self.head = nn.Sequential(
-            nn.Conv2d(dec_chs_out[-1], 1, 1), nn.Sigmoid()
+            nn.Conv2d(dec_chs[-1], 1, 1), nn.Sigmoid()
         )  # 1x1 convolution for producing the output-
 
         self.l_classifier = torch.nn.Conv2d(in_channels, num_labels, (1, 1))
@@ -99,6 +96,8 @@ class UNetClassifier(torch.nn.Module):
 
         #combine
         x = torch.cat((x, z), 1)
+
+        x = self.combine_linear(x)
 
         # decode
         for block, upconv, feature in zip(
