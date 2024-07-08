@@ -156,6 +156,9 @@ It will print a dictionary with all the necessary params you need to fill in to 
 
 Have fun!
 
+PS. See `src/experiments/example/main.py` for an example. 
+
+
 ##### Troubleshooting
 It might be that the config cannot indicate the names of the model / dataset.
 Double check that you have added the required annotations for the model, the dataset, and the datahandler.
@@ -171,10 +174,16 @@ passing the path to the config file and the name of the dataset to fine-tune it 
 
 Then you can run this config the same way as before. 
 
-### Testing a model
-...to be implemented...
-### Submitting a model
-... to be implemented...
+See `src/experiments/example/finetune.py`. 
+
+### Testing & submitting a model
+To submit a model, it needs to be run on test images from the CIL dataset. 
+Assuming the model takes whole images as input (possible resized) and returns a prediction for every pixel,
+there is a helper function to run the model on test images and create a submission file: `src.submission.test.test_on_full_images`.
+Just pass the path to the model's config there and (optionally) the resize dimensions.
+Note that if the config file used the CIL dataset, the resize dimensions will be taken from there. 
+
+Check `src/experiments/example/submit.py`.
 
 ### Connecting Weights & Biases
 It's always good to log all the experiments, and for that we're using [Weights & Biases](https://wandb.ai/site) framework.  
@@ -202,7 +211,7 @@ Look at `src/experiments/example/sweep.py` for an example, or follow these steps
 by adding a prefix `"SWEEP_"` to their name and providing a list of values / distribution to try out.
 
 For example, 
-```json
+```
 "lr": 0.01    =>    "SWEEP_lr": { "values" : [0.001, 0.05, 0.01] }
                          
               OR

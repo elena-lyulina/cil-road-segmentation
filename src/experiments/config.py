@@ -1,14 +1,14 @@
 import inspect
 import json
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 
 import torch
 import wandb
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.constants import DEVICE, WANDB_ENTITY
+from src.constants import DEVICE, WANDB_ENTITY, EXPERIMENTS_PATH
 from src.data.datahandler import get_datahandler_class
 from src.experiments.registry import import_files_from
 from src.models.utils import get_model_class, get_model
@@ -100,10 +100,10 @@ def generate_finetuning_config(pretrained_config_path: Path, dataset: str, var_n
     # It copies a 'model' config of the pretrained model for configs compatibility
     # Note: pass a config of the PRETRAINED model
 
-    model_path = pretrained_config_path.with_suffix('.pth')
-    assert model_path.exists(), f"No model found for config {pretrained_config_path.absolute()}"
+    # To assert this model exists
+    model_path = get_model_path_from_config(pretrained_config_path)
 
-    pretrained_config = json.loads(pretrained_config_path.read_bytes())
+    pretrained_config = load_config(pretrained_config_path)
     config = generate_config(pretrained_config['model']['name'], dataset, print_config=False)
     config['model'] = pretrained_config['model']
     config['model']['from_pretrained'] = str(pretrained_config_path.absolute())
@@ -142,6 +142,25 @@ def format_value(value, indent_level=0, indent=4, indent_char=' '):
         return value
     else:
         return repr(value)
+
+
+def get_model_path_from_config(config_path: Path) -> Path:
+    model_path = config_path.with_suffix('.pth')
+    assert model_path.exists(), f"No model found for config {config_path.absolute()}"
+    return model_path
+
+
+def get_experiment_name_from_config(config_path: Path) -> Optional[str]:
+    if EXPERIMENTS_PATH not in config_path.parents:
+        return None
+    parent_id = config_path.parents.index(EXPERIMENTS_PATH)
+    experiments_folder = config_path.parents[parent_id-1]
+    return experiments_folder.name
+
+
+def load_config(config_path: Path) -> dict:
+    return json.loads(config_path.read_bytes())
+
 
 
 # Run to generate a template config

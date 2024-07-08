@@ -22,7 +22,7 @@ class CILDataHandler(DataHandler):
     train_images_path = train_path.joinpath("images")
     train_masks_path = train_path.joinpath("groundtruth")
 
-    def __init__(self, batch_size=4, shuffle=True, resize_to=(384, 384), augment=None):
+    def __init__(self, batch_size=4, shuffle=True, resize_to=(400, 400), augment=None):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.resize_to = resize_to
@@ -122,7 +122,7 @@ class CILDataset(Dataset):
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
         img_path, mask_path = self.items[item]
-        # print(f'load: {img_path}')
+
         image = np.array(Image.open(img_path))[:, :, :3].astype(np.float32) / 255.0
         mask = np.array(Image.open(mask_path).convert("L")).astype(np.float32) / 255.0
 
