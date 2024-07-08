@@ -26,7 +26,7 @@ class ConvBlock(nn.Module):
         return self.block(x)
 
 class UNetClassifier(torch.nn.Module):
-    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(3, 64, 128, 256, 512, 1024)):
+    def __init__(self, in_channels, tokenW=384, tokenH=384, num_labels=1, chs=(6, 64, 128, 256, 512, 1024)):
         super(UNetClassifier, self).__init__()
 
         enc_chs = chs  # number of channels in the encoder
@@ -36,19 +36,11 @@ class UNetClassifier(torch.nn.Module):
         self.width = tokenW
         self.height = tokenH
 
-        # self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=384, stride=7, kernel_size=14, padding=2)
-        # self.init_upsampling2 = nn.ConvTranspose2d(in_channels=384, out_channels=96, stride=2,
-        #                                            kernel_size=4, padding=1)
-        # self.linear = nn.Conv2d(in_channels=96, out_channels=3, stride=1,
-        #                                            kernel_size=3, padding=1)
-
-        self.linear1 = nn.Conv2d(in_channels=768, out_channels=768, stride=1,
-                                                    kernel_size=3, padding=0)
-
-        self.linear2 = nn.Conv2d(in_channels=768, out_channels=768, stride=1,
-                                 kernel_size=2, padding=0)
-
-        self.combine_linear = nn.Conv2d(in_channels=1792, out_channels=1024, stride=1, kernel_size=1, padding=0)
+        self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=384, stride=7, kernel_size=14, padding=2)
+        self.init_upsampling2 = nn.ConvTranspose2d(in_channels=384, out_channels=96, stride=2,
+                                                   kernel_size=4, padding=1)
+        self.linear = nn.Conv2d(in_channels=96, out_channels=3, stride=1,
+                                                   kernel_size=3, padding=1)
 
         self.enc_blocks = nn.ModuleList(
             [ConvBlock(in_ch, out_ch) for in_ch, out_ch in zip(enc_chs[:-1], enc_chs[1:])]
@@ -73,19 +65,13 @@ class UNetClassifier(torch.nn.Module):
         embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
         embeddings = embeddings.permute(0, 3, 1, 2)
 
-        z = self.linear1(embeddings)
-        z = self.linear2(z)
+        x = self.init_upsampling1(embeddings)
+        x = self.init_upsampling2(x)
+        x = nn.functional.pad(x, (1, 1, 1, 1))
+        x = self.linear(x)
 
-        # z = nn.functional.pad(z, (1, 0, 1, 0))
+        x = torch.cat((x, pixel_values), dim=1)
 
-        # x = self.init_upsampling1(embeddings)
-        # x = self.init_upsampling2(x)
-        # x = nn.functional.pad(x, (1, 1, 1, 1))
-        # x = self.linear(x)
-
-        # x = torch.cat((x, pixel_values), dim=1)
-
-        x = pixel_values
 
         enc_features = []
         for block in self.enc_blocks[:-1]:
@@ -93,12 +79,6 @@ class UNetClassifier(torch.nn.Module):
             enc_features.append(x)  # save features for skip connections
             x = self.pool(x)  # decrease resolution
         x = self.enc_blocks[-1](x)
-
-        #combine
-        x = torch.cat((x, z), 1)
-
-        x = self.combine_linear(x)
-
         # decode
         for block, upconv, feature in zip(
                 self.dec_blocks, self.upconvs, enc_features[::-1]

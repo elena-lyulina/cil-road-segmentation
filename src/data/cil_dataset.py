@@ -49,29 +49,6 @@ class CILDataHandler(DataHandler):
             augment=self.augment,
         )
 
-        # if self.augment:
-        #     geometric_dataset = CILDataset(
-        #         self.train_image_paths,
-        #         self.train_mask_paths,
-        #         PATCH_SIZE,
-        #         CUTOFF,
-        #         DEVICE,
-        #         resize_to=self.resize_to,
-        #         augment="geometric",
-        #     )
-        #     color_dataset = CILDataset(
-        #         self.train_image_paths,
-        #         self.train_mask_paths,
-        #         PATCH_SIZE,
-        #         CUTOFF,
-        #         DEVICE,
-        #         resize_to=self.resize_to,
-        #         augment="color",
-        #     )
-        #     train_dataset = ConcatDataset(
-        #         [train_dataset, geometric_dataset, color_dataset]
-        #     )
-
         val_dataset = CILDataset(
             self.val_image_paths,
             self.val_mask_paths,
