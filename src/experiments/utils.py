@@ -12,6 +12,10 @@ def get_save_path_and_experiment_name(file) -> Tuple[Path, str]:
     # saving trained models to "results" folder in this experiment's folder
     save_path = Path(file).parent.absolute().joinpath('results')
     # naming the experiment by this experiment's folder
-    experiment_name = Path(file).parent.name
+    experiment_name = get_experiment_name(file)
 
     return save_path, experiment_name
+
+def get_experiment_name(file) -> str:
+    # Returns the parent folder of the file, which should correspond to the experiment folder
+    return Path(file).parent.name
