@@ -1,15 +1,19 @@
+"""
+Most loss functions are taken from https://www.sciencedirect.com/science/article/pii/S1569843222003478
+"""
+
 import torch
 from torch import nn as nn
+from skimage.morphology import skeletonize
 
 
-class dice_bce_loss(nn.Module):
+class SoftDiceLoss(nn.Module):
     def __init__(self, batch=True):
-        super(dice_bce_loss, self).__init__()
+        super(SoftDiceLoss, self).__init__()
         self.batch = batch
-        self.bce_loss = nn.BCELoss()
 
-    def soft_dice_coeff(self, y_pred, y_true):
-        smooth = 0.0  # may change
+    def dice_coeff(self, y_pred, y_true):
+        smooth = 1.0
         if self.batch:
             i = torch.sum(y_true)
             j = torch.sum(y_pred)
@@ -19,17 +23,89 @@ class dice_bce_loss(nn.Module):
             j = y_pred.sum(1).sum(1).sum(1)
             intersection = (y_true * y_pred).sum(1).sum(1).sum(1)
         score = (2.0 * intersection + smooth) / (i + j + smooth)
-        # score = (intersection + smooth) / (i + j - intersection + smooth)#iou
         return score.mean()
 
-    def soft_dice_loss(self, y_true, y_pred):
-        loss = 1 - self.soft_dice_coeff(y_true, y_pred)
+    def __call__(self, y_pred, y_true):
+        loss = 1 - self.dice_coeff(y_pred, y_true)
         return loss
 
+
+class SquaredDiceLoss(nn.Module):
+    def __init__(self, batch=True):
+        super(SquaredDiceLoss, self).__init__()
+        self.batch = batch
+
+    def squared_dice_coeff(self, y_pred, y_true):
+        smooth = 1.0
+        if self.batch:
+            i = torch.sum(torch.square(y_true))
+            j = torch.sum(torch.square(y_pred))
+            intersection = torch.sum(y_true * y_pred)
+        else:
+            i = torch.square(y_true).sum(1).sum(1).sum(1)
+            j = torch.square(y_pred).sum(1).sum(1).sum(1)
+            intersection = (y_true * y_pred).sum(1).sum(1).sum(1)
+        score = (2.0 * intersection + smooth) / (i + j + smooth)
+        return score.mean()
+
     def __call__(self, y_pred, y_true):
-        a = self.bce_loss(y_pred, y_true)
-        b = self.soft_dice_loss(y_true, y_pred)
-        return a + b
+        loss = 1 - self.squared_dice_coeff(y_pred, y_true)
+        return loss
+
+
+class LogCoshDiceLoss(nn.Module):
+    def __init__(self, batch=True):
+        super(LogCoshDiceLoss, self).__init__()
+        self.batch = batch
+        self.dice_loss = SoftDiceLoss(batch)
+
+    def __call__(self, y_pred, y_true):
+        dice = self.dice_loss(y_pred, y_true)
+        return torch.log(torch.cosh(dice))
+
+
+class CenterlineDiceLoss(nn.Module):
+    """
+    Centerline Dice Loss. First introduced in: https://arxiv.org/pdf/2003.07311
+    """
+
+    def __init__(self, iter_=10, smooth=1.0):
+        super(CenterlineDiceLoss, self).__init__()
+        self.iter = iter_
+        self.smooth = smooth
+
+    def binarize(self, tensor):
+        return (tensor > 0.5).float()
+
+    def __call__(self, y_pred, y_true, skel_true=None):
+        y_pred_bin = self.binarize(y_pred).cpu().numpy()
+        y_true_bin = self.binarize(y_true).cpu().numpy()
+
+        skel_pred = (
+            torch.tensor([skeletonize(y) for y in y_pred_bin]).float().to(y_pred.device)
+        )
+        if skel_true is None:
+            skel_true = (
+                torch.tensor([skeletonize(y) for y in y_true_bin])
+                .float()
+                .to(y_true.device)
+            )
+        else:
+            skel_true = self.binarize(skel_true).cpu().numpy()
+            skel_true = (
+                torch.tensor([skeletonize(y) for y in skel_true])
+                .float()
+                .to(y_true.device)
+            )
+
+        tprec = (
+            torch.sum(torch.multiply(skel_pred, y_true)[:, 1:, ...]) + self.smooth
+        ) / (torch.sum(skel_pred[:, 1:, ...]) + self.smooth)
+        tsens = (
+            torch.sum(torch.multiply(skel_true, y_pred)[:, 1:, ...]) + self.smooth
+        ) / (torch.sum(skel_true[:, 1:, ...]) + self.smooth)
+        cl_dice = 1.0 - 2.0 * (tprec * tsens) / (tprec + tsens)
+        return cl_dice.mean()
 
 
 class FocalTverskyLoss(nn.Module):
@@ -50,16 +126,6 @@ class FocalTverskyLoss(nn.Module):
         self.batch = batch
 
     def tversky_index(self, y_pred, y_true):
-        """
-        Compute the Tversky index.
-
-        Parameters:
-            y_pred (torch.Tensor): Predicted probabilities.
-            y_true (torch.Tensor): Ground truth binary labels.
-
-        Returns:
-            torch.Tensor: Computed Tversky index.
-        """
         if self.batch:
             true_pos = torch.sum(y_true * y_pred)
             false_neg = torch.sum(y_true * (1 - y_pred))
@@ -78,16 +144,19 @@ class FocalTverskyLoss(nn.Module):
         return tversky
 
     def __call__(self, y_pred, y_true):
-        """
-        Compute the Focal Tversky Loss.
-
-        Parameters:
-            y_pred (torch.Tensor): Predicted probabilities (after sigmoid/softmax).
-            y_true (torch.Tensor): Ground truth binary labels.
-
-        Returns:
-            torch.Tensor: Computed loss.
-        """
         tversky = self.tversky_index(y_pred, y_true)
         focal_tversky_loss = torch.pow((1 - tversky), self.gamma)
         return focal_tversky_loss.mean()
+
+
+class CombinedLoss(nn.Module):
+    def __init__(self, loss1, loss2, llambda=1.0):
+        super(CombinedLoss, self).__init__()
+        self.loss1 = loss1
+        self.loss2 = loss2
+        self.llambda = llambda
+
+    def __call__(self, y_pred, y_true):
+        loss1_value = self.loss1(y_pred, y_true)
+        loss2_value = self.loss2(y_pred, y_true)
+        return loss1_value + self.llambda * loss2_value
