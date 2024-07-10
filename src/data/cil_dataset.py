@@ -122,7 +122,6 @@ class CILDataset(Dataset):
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
         img_path, mask_path = self.items[item]
-
         image = np.array(Image.open(img_path))[:, :, :3].astype(np.float32) / 255.0
         mask = np.array(Image.open(mask_path).convert("L")).astype(np.float32) / 255.0
 
@@ -131,7 +130,6 @@ class CILDataset(Dataset):
             mask = cv2.resize(mask, dsize=self.resize_to)
 
         image, mask = self._preprocess(image, mask)
-
         image = np.moveaxis(
             image, -1, 0
         )  # pytorch works with CHW format instead of HWC
