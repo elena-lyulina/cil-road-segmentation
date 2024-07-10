@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
-import torchvision.transforms as T
+import albumentations as A
 import torch
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
@@ -22,7 +22,7 @@ class CILDataHandler(DataHandler):
     train_images_path = train_path.joinpath("images")
     train_masks_path = train_path.joinpath("groundtruth")
 
-    def __init__(self, batch_size=4, shuffle=True, resize_to=(384, 384), augment=False):
+    def __init__(self, batch_size=4, shuffle=True, resize_to=(400, 400), augment=None):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.resize_to = resize_to
@@ -46,31 +46,8 @@ class CILDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=False,
+            augment=self.augment,
         )
-
-        if self.augment:
-            geometric_dataset = CILDataset(
-                self.train_image_paths,
-                self.train_mask_paths,
-                PATCH_SIZE,
-                CUTOFF,
-                DEVICE,
-                resize_to=self.resize_to,
-                augment="geometric",
-            )
-            color_dataset = CILDataset(
-                self.train_image_paths,
-                self.train_mask_paths,
-                PATCH_SIZE,
-                CUTOFF,
-                DEVICE,
-                resize_to=self.resize_to,
-                augment="color",
-            )
-            train_dataset = ConcatDataset(
-                [train_dataset, geometric_dataset, color_dataset]
-            )
 
         val_dataset = CILDataset(
             self.val_image_paths,
@@ -79,7 +56,7 @@ class CILDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=False,
+            augment=None,
         )
 
         train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle)
@@ -100,8 +77,10 @@ class CILDataset(Dataset):
         cutoff,
         device,
         resize_to=(400, 400),
-        augment=False,
+        augment=None,
     ):
+        if augment is None:
+            augment = []
         self.items = list(zip(image_paths, mask_paths))
         self.patch_size = patch_size
         self.cutoff = cutoff
@@ -109,28 +88,35 @@ class CILDataset(Dataset):
         self.resize_to = resize_to
         self.augment = augment
 
-        self.geometric_transform = T.Compose(
+        self.geometric_transform = A.Compose(
             [
-                T.RandomRotation(30),
-                T.RandomHorizontalFlip(),
-                T.RandomVerticalFlip(),
+                A.Rotate(30),
+                A.VerticalFlip(),
+                A.VerticalFlip(),
             ]
         )
 
-        self.color_transform = T.Compose(
+        self.color_transform = A.Compose(
             [
-                T.ColorJitter(brightness=0.2, contrast=0.2),
-                T.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5)),
+                A.ColorJitter(brightness=0.2, contrast=0.2),
+                A.AdvancedBlur(blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)),
             ]
         )
 
     def _preprocess(self, x, y):
         # to keep things simple we will not apply transformations to each sample,
         # but it would be a very good idea to look into preprocessing
-        if self.augment == "geometric":
-            x = self.geometric_transform(x)
-        elif self.augment == "color":
-            x = self.color_transform(x)
+        if "geometric" in self.augment:
+            z = self.geometric_transform(image=x, mask=y)
+            x = z["image"]
+            y = z["mask"]
+
+        if "color" in self.augment:
+            x = self.color_transform(image=x)["image"]
+
+        # cv2.imshow('x', x)
+        # cv2.imshow('y', y)
+        # cv2.waitKey(0)
         return x, y
 
     def __getitem__(self, item):
@@ -143,6 +129,7 @@ class CILDataset(Dataset):
             image = cv2.resize(image, dsize=self.resize_to)
             mask = cv2.resize(mask, dsize=self.resize_to)
 
+        image, mask = self._preprocess(image, mask)
         image = np.moveaxis(
             image, -1, 0
         )  # pytorch works with CHW format instead of HWC
@@ -152,7 +139,7 @@ class CILDataset(Dataset):
         image_tensor = np_to_tensor(image, self.device)
         mask_tensor = np_to_tensor(mask, self.device)
 
-        return self._preprocess(image_tensor, mask_tensor)
+        return image_tensor, mask_tensor
 
     def __len__(self):
         return len(self.items)

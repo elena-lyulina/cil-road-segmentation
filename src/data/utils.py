@@ -34,19 +34,19 @@ def image_to_patches(images, patch_size, cutoff, masks=None):
 
     images = images[:, :, :, :3]
 
-    h_patches = h // patch_size
-    w_patches = w // patch_size
+    h_patches = h // patch_size # 25
+    w_patches = w // patch_size # 25
 
-    patches = images.reshape((n_images, h_patches, patch_size, w_patches, patch_size, -1))
-    patches = np.moveaxis(patches, 2, 3)
-    patches = patches.reshape(-1, patch_size, patch_size, 3)
+    patches = images.reshape((n_images, h_patches, patch_size, w_patches, patch_size, -1)) # # (144, 25, 16, 25, 16, 3)
+    patches = np.moveaxis(patches, 2, 3) # (144, 25, 25, 16, 16, 3)
+    patches = patches.reshape(-1, patch_size, patch_size, 3)  # (90000, 16, 16, 3)
     if masks is None:
         return patches
 
-    masks = masks.reshape((n_images, h_patches, patch_size, w_patches, patch_size, -1))
-    masks = np.moveaxis(masks, 2, 3)
-    labels = np.mean(masks, (-1, -2, -3)) > cutoff  # compute labels
-    labels = labels.reshape(-1).astype(np.float32)
+    masks = masks.reshape((n_images, h_patches, patch_size, w_patches, patch_size, -1)) # (144, 25, 16, 25, 16, 1)
+    masks = np.moveaxis(masks, 2, 3) # (144, 25, 25, 16, 16, 1)
+    labels = np.mean(masks, (-1, -2, -3)) > cutoff  # compute labels, (144, 25, 25)
+    labels = labels.reshape(-1).astype(np.float32) # (90000,)
     return patches, labels
 
 

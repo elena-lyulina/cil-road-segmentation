@@ -30,6 +30,8 @@ def patch_accuracy_fn(y_hat, y):
     h_patches = y.shape[-2] // PATCH_SIZE
     w_patches = y.shape[-1] // PATCH_SIZE
     #patches_hat = y_hat.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
+    y = torch.nn.functional.interpolate(y, (h_patches*PATCH_SIZE, w_patches*PATCH_SIZE), mode='bilinear')
+    y_hat = torch.nn.functional.interpolate(y_hat, (h_patches * PATCH_SIZE, w_patches * PATCH_SIZE), mode='bilinear')
     patches_hat = torch.mean(y_hat.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE), (-1,-3)) > CUTOFF
     patches = y.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
 

@@ -16,6 +16,7 @@ ROOT_PATH = Path(__file__).parent.parent.absolute()
 DATA_PATH = ROOT_PATH.joinpath("data")
 OUT_PATH = ROOT_PATH.joinpath("out")
 SRC_PATH = ROOT_PATH.joinpath("src")
+EXPERIMENTS_PATH = SRC_PATH.joinpath("experiments")
 
 
 #### EXPERIMENTS (DO NOT CHANGE) ####
