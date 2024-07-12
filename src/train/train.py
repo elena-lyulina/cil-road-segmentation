@@ -63,10 +63,11 @@ def train(
             optimizer.step()  # optimize weights
 
             # log partial metrics
-            metrics['loss'].append(loss.item())
-            for k, fn in metric_fns.items():
-                metrics[k].append(fn(y_hat, y).item())
-            pbar.set_postfix({k: sum(v) / len(v) for k, v in metrics.items() if len(v) > 0})
+            with torch.no_grad():  # don't need gradients for metrics
+                metrics['loss'].append(loss.item())
+                for k, fn in metric_fns.items():
+                    metrics[k].append(fn(y_hat, y).item())
+                pbar.set_postfix({k: sum(v) / len(v) for k, v in metrics.items() if len(v) > 0})
 
         # validation
         model.eval()
