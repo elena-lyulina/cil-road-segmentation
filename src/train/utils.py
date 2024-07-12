@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-import src.train.loss as loss
+from src.train.loss import *
 
 ### TRAIN CONFIG UTIL ###
 
@@ -24,10 +24,39 @@ def get_optimizer(config: dict, model: nn.Module) -> torch.optim.Optimizer:
 
 def get_loss(config: dict):
     params = config["train"]["loss"]["params"]
+    llambda = params.get("lambda", 1.0)
+
+    def create_combined_loss(loss1, loss2, lambda_param):
+        return CombinedLoss(loss1, loss2, lambda_param)
+
     match config["train"]["loss"]["name"]:
         case "BCELoss":
             return nn.BCELoss(**params)
+        case "sDice":
+            return SoftDiceLoss(**params)
+        case "lcDice":
+            return LogCoshDiceLoss(**params)
+        case "sqDice":
+            return SquaredDiceLoss(**params)
+        case "clDice":
+            return CenterlineDiceLoss(**params)
+        case "ft":
+            return FocalTverskyLoss(**params)
         case "DiceBCELoss":
-            return loss.dice_bce_loss()
-        case "FocalTverskyLoss":
-            return loss.FocalTverskyLoss(**params)
+            return create_combined_loss(SoftDiceLoss(**params), nn.BCELoss(), llambda)
+        case "lcDiceBCELoss":
+            return create_combined_loss(
+                LogCoshDiceLoss(**params), nn.BCELoss(), llambda
+            )
+        case "sqDiceBCELoss":
+            return create_combined_loss(
+                SquaredDiceLoss(**params), nn.BCELoss(), llambda
+            )
+        case "clDiceBCELoss":
+            return create_combined_loss(
+                CenterlineDiceLoss(**params), nn.BCELoss(), llambda
+            )
+        case "ftBCE":
+            return create_combined_loss(
+                FocalTverskyLoss(**params), nn.BCELoss(), llambda
+            )
