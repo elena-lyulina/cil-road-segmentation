@@ -2,8 +2,6 @@ from src.constants import DEVICE
 from pathlib import Path
 
 import torch
-import torchvision
-from torch import nn
 
 from src.models.small_UNet.small_UNet import UNet
 from src.models.utils import MODEL_REGISTRY
@@ -49,18 +47,11 @@ class SAM(torch.nn.Module):
             originals[i] = image
             masks[i] = seg
 
-        # inputs = self.processor(pixel_values.squeeze(0), segmentation_maps=prompt.squeeze(0))
-        # pixel_values = torch.tensor(inputs['pixel_values'][0]).unsqueeze(0).to(DEVICE)
-        # input_mask = torch.tensor(inputs['labels'][0]).unsqueeze(0).to(DEVICE)
         outputs = self.sam(pixel_values=originals, multimask_output=False)
 
-        masks = self.processor.post_process_masks(outputs.pred_masks, [(width, height)]*4, [(1024, 1024)]*4, binarize=False)
+        masks = self.processor.post_process_masks(outputs.pred_masks, [(width, height)]*num_batch, [(1024, 1024)]*num_batch, binarize=False)
         masks = torch.cat(masks, 0)
-        # min_val = masks.min()
-        # max_val = masks.max()
-        # pred = (masks - min_val) / (max_val - min_val)
 
-        # pred = torch.clamp(masks, min=0., max=1.)
         pred = torch.nn.functional.sigmoid(masks)
 
         return pred
