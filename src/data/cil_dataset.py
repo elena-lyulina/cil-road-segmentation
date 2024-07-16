@@ -7,7 +7,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 import albumentations as A
-import torch
+import random
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
 from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
@@ -56,7 +56,7 @@ class CILDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=None,
+            augment=["masked"] if "masked" in self.augment else None,
         )
 
         train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle)
@@ -100,7 +100,9 @@ class CILDataset(Dataset):
             [
                 # params should be a range, we might want to look into it later to tune these params or use defaults
                 A.ColorJitter(brightness=(0.2, 0.2), contrast=(0.2, 0.2)),
-                A.AdvancedBlur(blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)),
+                A.AdvancedBlur(
+                    blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)
+                ),
             ]
         )
 
@@ -115,10 +117,26 @@ class CILDataset(Dataset):
         if "color" in self.augment:
             x = self.color_transform(image=x)["image"]
 
+        if "masked" in self.augment:
+            x = self.apply_masking(x)
+
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)
         # cv2.waitKey(0)
         return x, y
+
+    def apply_masking(self, image):
+        # Apply 50x50 patch masking
+        for _ in range(8):  # Hyperparameter: 8 patches
+            i, j = random.randint(0, 350), random.randint(0, 350)
+            image[i:i+50, j:j+50] = 0
+
+        # Apply 16x16 patch flipping
+        for _ in range(50):  # Hyperparameter: 50 patches
+            i, j = random.randint(0, 384), random.randint(0, 384)
+            image[i:i+16, j:j+16] = 1 - image[i:i+16, j:j+16]
+
+        return image
 
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
