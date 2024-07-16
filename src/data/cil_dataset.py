@@ -118,25 +118,25 @@ class CILDataset(Dataset):
             x = self.color_transform(image=x)["image"]
 
         if "masked" in self.augment:
-            x = self.apply_masking(x)
+            x = self.apply_masking(y)
 
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)
         # cv2.waitKey(0)
         return x, y
 
-    def apply_masking(self, image):
+    def apply_masking(self, mask):
         # Apply 50x50 patch masking
         for _ in range(8):  # Hyperparameter: 8 patches
             i, j = random.randint(0, 350), random.randint(0, 350)
-            image[i:i+50, j:j+50] = 0
+            mask[i : i + 50, j : j + 50] = 0
 
         # Apply 16x16 patch flipping
         for _ in range(50):  # Hyperparameter: 50 patches
             i, j = random.randint(0, 384), random.randint(0, 384)
-            image[i:i+16, j:j+16] = 1 - image[i:i+16, j:j+16]
+            mask[i : i + 16, j : j + 16] = 1 - mask[i : i + 16, j : j + 16]
 
-        return image
+        return mask
 
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
