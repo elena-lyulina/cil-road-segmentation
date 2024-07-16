@@ -14,7 +14,8 @@ cur_config = {
         'params': {
             'batch_size': 4,
             'shuffle': True,
-            'resize_to': (384, 384)
+            'resize_to': (384, 384),
+            'augment': None
         }
     },
     'train': {
