@@ -21,6 +21,7 @@ class SAM(torch.nn.Module):
         self.UNet = UNet(chs=(3, 64, 128, 256, 512, 1024))
         checkpoint = torch.load(Path(__file__).resolve().parent / 'models' / 'small_unet.pth')
         self.UNet.load_state_dict(checkpoint['model_state_dict'])
+        self.UNet.requires_grad_(False)
         self._freeze_sam_encoder()
 
     def _freeze_sam_encoder(self):
