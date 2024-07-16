@@ -149,6 +149,8 @@ class CILDataset(Dataset):
             mask = cv2.resize(mask, dsize=self.resize_to)
 
         image, mask = self._preprocess(image, mask)
+        if self.augment:
+            image = np.reshape(image, (image.shape[0], image.shape[1], 1))
         image = np.moveaxis(
             image, -1, 0
         )  # pytorch works with CHW format instead of HWC
