@@ -98,7 +98,8 @@ class CILDataset(Dataset):
 
         self.color_transform = A.Compose(
             [
-                A.ColorJitter(brightness=0.2, contrast=0.2),
+                # params should be a range, we might want to look into it later to tune these params or use defaults
+                A.ColorJitter(brightness=(0.2, 0.2), contrast=(0.2, 0.2)),
                 A.AdvancedBlur(blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)),
             ]
         )

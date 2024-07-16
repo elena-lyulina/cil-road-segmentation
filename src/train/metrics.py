@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import torch
+from sklearn.metrics import f1_score, recall_score, precision_score
 
 from src.constants import PATCH_SIZE, CUTOFF
 from src.experiments.registry import Registry
@@ -24,6 +25,7 @@ def accuracy_fn(y_hat, y):
     # computes classification accuracy
     return (y_hat.round() == y.round()).float().mean()
 
+
 @METRICS_REGISTRY.register('patch_acc')
 def patch_accuracy_fn(y_hat, y):
     # computes accuracy weighted by patches (metric used on Kaggle for evaluation)
@@ -37,5 +39,23 @@ def patch_accuracy_fn(y_hat, y):
 
     return (patches == patches_hat).float().mean()
 
+
+@METRICS_REGISTRY.register('recall')
+def recall_fn(y_hat, y):
+    return recall_score(y.flatten(), y_hat.round().flatten())
+
+
+@METRICS_REGISTRY.register('precision')
+def precision_fn(y_hat, y):
+    return precision_score(y.flatten(), y_hat.round().flatten())
+
+
+@METRICS_REGISTRY.register('f1')
+def f1_fn(y_hat, y):
+    return f1_score(y.flatten(), y_hat.round().flatten())
+
+
 if __name__ == '__main__':
     metrics, metrics_fn = get_metrics()
+    print(metrics)
+
