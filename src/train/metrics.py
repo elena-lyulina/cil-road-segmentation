@@ -40,19 +40,19 @@ def patch_accuracy_fn(y_hat, y):
     return (patches == patches_hat).float().mean()
 
 
-@METRICS_REGISTRY.register('recall')
-def recall_fn(y_hat, y):
-    return recall_score(y.flatten(), y_hat.round().flatten())
-
-
-@METRICS_REGISTRY.register('precision')
-def precision_fn(y_hat, y):
-    return precision_score(y.flatten(), y_hat.round().flatten())
-
-
-@METRICS_REGISTRY.register('f1')
-def f1_fn(y_hat, y):
-    return f1_score(y.flatten(), y_hat.round().flatten())
+# @METRICS_REGISTRY.register('recall')
+# def recall_fn(y_hat, y):
+#     return recall_score(y.flatten(), y_hat.round().flatten())
+#
+#
+# @METRICS_REGISTRY.register('precision')
+# def precision_fn(y_hat, y):
+#     return precision_score(y.flatten(), y_hat.round().flatten())
+#
+#
+# @METRICS_REGISTRY.register('f1')
+# def f1_fn(y_hat, y):
+#     return f1_score(y.flatten(), y_hat.round().flatten())
 
 
 if __name__ == '__main__':

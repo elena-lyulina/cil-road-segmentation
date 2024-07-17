@@ -14,7 +14,7 @@ DEFAULT_TRAIN_CONFIG = {
 
 def get_optimizer(config: dict, model: nn.Module) -> torch.optim.Optimizer:
     params = config["train"]["optimizer"]["params"]
-    model_params = model.parameters() # if config["model"]["name"] != "SAM" else list(model.sam.mask_decoder.parameters()) + list(model.UNet.parameters())
+    model_params = model.parameters() if config["model"]["name"] != "SAM" else list(model.sam.mask_decoder.parameters()) # + list(model.UNet.parameters())
     match config["train"]["optimizer"]["name"]:
         case "Adam":
             return torch.optim.Adam(model_params, **params)

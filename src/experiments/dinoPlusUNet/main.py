@@ -12,14 +12,15 @@ cur_config = {
         "params": {},
     },
     "dataset": {
-        "name": "cil",
-        "params": {"batch_size": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]},
+        "name": "90k",
+        "params": {"batch_size": 8, "num_workers": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]}
     },
     "train": {
         "n_epochs": 30,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
+        "n_gpus": 1
     },
 }
 
@@ -28,4 +29,4 @@ if __name__ == "__main__":
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
     run_name = get_run_name(cur_config)
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)

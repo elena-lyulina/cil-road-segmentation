@@ -10,15 +10,15 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': 'cil',
+        'name': '90k',
         'params': {
-            'batch_size': 4,
+            'batch_size': 8,
             'shuffle': True,
             'resize_to': (384, 384)
         }
     },
     'train': {
-        'n_epochs': 1,
+        'n_epochs': 10,
         'optimizer': {
             'name': 'Adam',
             'params': {

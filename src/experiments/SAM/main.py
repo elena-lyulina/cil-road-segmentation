@@ -11,14 +11,15 @@ cur_config = {
         "params": {},
     },
     "dataset": {
-        "name": "cil",
-        "params": {"batch_size": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]},
+        "name": "90k",
+        "params": {"batch_size": 4, "num_workers": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]},
     },
     "train": {
-        "n_epochs": 30,
+        "n_epochs": 10,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0001}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
+        "n_gpus": 1
     },
 }
 
