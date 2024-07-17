@@ -16,7 +16,7 @@ cur_config = {
     },
     "train": {
         "n_epochs": 10,
-        "optimizer": {"name": "Adam", "params": {"lr": 0.0001}},
+        "optimizer": {"name": "Adam", "params": {"lr": 0.00001}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
         "n_gpus": 1

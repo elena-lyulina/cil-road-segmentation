@@ -20,7 +20,7 @@ cur_config = {
         "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
-        "n_gpus": 1
+        "n_gpus": 2
     },
 }
 
@@ -29,4 +29,4 @@ if __name__ == "__main__":
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
     run_name = get_run_name(cur_config)
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)

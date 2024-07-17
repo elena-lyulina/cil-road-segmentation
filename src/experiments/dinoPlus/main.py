@@ -13,14 +13,14 @@ cur_config = {
     },
     "dataset": {
         "name": "90k",
-        "params": {"batch_size": 64, "num_workers": 16, "shuffle": True, "resize_to": (384, 384), "augment": ["geometric"]},
+        "params": {"batch_size": 16, "num_workers": 8, "shuffle": True, "resize_to": (384, 384), "augment": ["geometric"]},
     },
     "train": {
         "n_epochs": 10,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
         "loss": {"name": "BCELoss", "params": {}},
         "clip_grad": None,
-        "n_gpus": 4
+        "n_gpus": 2
     },
 }
 
