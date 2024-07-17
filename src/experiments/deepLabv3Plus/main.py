@@ -8,7 +8,6 @@ cur_config = {
         'params': {
             'backbone': 'resnet101',
             'output_stride': 4,
-            'num_classes': 1,
             'pretrained_backbone': True,
             'separable_conv': False
         }
@@ -23,7 +22,7 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 1,
+        'n_epochs': 3,
         'optimizer': {
             'name': 'Adam',
             'params': {
