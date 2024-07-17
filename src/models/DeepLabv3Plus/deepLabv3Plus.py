@@ -1,55 +1,29 @@
-import torch
-import torch.nn.functional as F
-
-from src.models.DeepLabv3Plus.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p
+from torch import nn
 
 from src.models.utils import MODEL_REGISTRY
 
+import src.models.DeepLabv3Plus.network as network
+
+
+def set_bn_momentum(model, momentum=0.1):
+    for m in model.modules():
+        if isinstance(m, nn.BatchNorm2d):
+            m.momentum = momentum
+
+
 @MODEL_REGISTRY.register("deeplabv3plus")
-class ModelDeepLabV3Plus(torch.nn.Module):
-    def __init__(self, cfg, outputs_desc): # desc = descriptor 
-        super().__init__()
-        self.outputs_desc = outputs_desc
-        ch_out = sum(outputs_desc.values())
+class DeepLabv3Plus(nn.Module):
 
-        self.encoder = Encoder(
-            cfg.model_encoder_name,
-            pretrained=cfg.pretrained,
-            zero_init_residual=True,
-            replace_stride_with_dilation=(False, False, True),
-        )
+    # TODO: add option for disabling pretrained backbone
+    def __init__(self, backbone='resnet101', output_stride=8, num_classes=2, pretrained_backbone=True, separable_conv=False):
+        super(DeepLabv3Plus, self).__init__()
 
-        ch_out_encoder_bottleneck, ch_out_encoder_4x = get_encoder_channel_counts(cfg.model_encoder_name)
-
-        self.aspp = ASPP(ch_out_encoder_bottleneck, 256)
-
-        self.decoder = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out)
+        model = network.modeling._load_model('deeplabv3plus', backbone, num_classes, output_stride, pretrained_backbone)
+        self.backbone = model.backbone
+        self.classifier = model.classifier
+        if separable_conv:
+            network.convert_to_separable_conv(model.classifier)
+        set_bn_momentum(model.backbone, momentum=0.01)
 
     def forward(self, x):
-        input_resolution = (x.shape[2], x.shape[3])
-
-        features = self.encoder(x)
-
-        # Uncomment to see the scales of feature pyramid with their respective number of channels.
-        # print(", ".join([f"{k}:{v.shape[1]}" for k, v in features.items()]))
-
-        lowest_scale = max(features.keys())
-
-        features_lowest = features[lowest_scale]
-
-        features_tasks = self.aspp(features_lowest)
-
-        predictions_4x, _ = self.decoder(features_tasks, features[4])
-
-        predictions_1x = F.interpolate(predictions_4x, size=input_resolution, mode='bilinear', align_corners=False)
-
-        out = {}
-        offset = 0
-
-        for task, num_ch in self.outputs_desc.items():
-            current_precition = predictions_1x[:, offset:offset+num_ch, :, :]
-            # be sure that depth is > 0, you can use other operators than exp
-            out[task] = current_precition.exp().clamp(0.1, 300.0) if task == "depth" else current_precition
-            offset += num_ch
-
-        return out
+        return self.classifier(self.backbone(x))
