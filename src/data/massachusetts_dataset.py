@@ -39,7 +39,7 @@ class MassachusettsDataHandler(DataHandler):
         self.shuffle = shuffle
         self.augment = augment
 
-    def get_train_val_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
+    def get_train_val_dataloaders(self, config) -> Tuple[DataLoader, DataLoader]:
         train_dataset = MassachusettsDataset(
             self.train_images_path, self.train_masks_path, augment=False
         )
@@ -59,12 +59,14 @@ class MassachusettsDataHandler(DataHandler):
             self.test_images_path, self.test_masks_path, augment=False
         )
 
+        num_workers = config["dataset"]["num_workers"]
+
         train_dataloader = DataLoader(
             train_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            shuffle=self.shuffle,
+            shuffle=self.shuffle
         )
         val_dataloader = DataLoader(
             val_dataset,

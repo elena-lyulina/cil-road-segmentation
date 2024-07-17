@@ -8,7 +8,6 @@ from pathlib import Path
 
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f'Running on {DEVICE}')
 
 
 #### PATHS ####

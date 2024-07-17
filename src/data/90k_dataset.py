@@ -7,20 +7,19 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 import albumentations as A
-import random
+import torch
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
 from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
 from src.data.utils import DATASET_REGISTRY, np_to_tensor
 
 
-@DATAHANDLER_REGISTRY.register("cil")
-class CILDataHandler(DataHandler):
-    dataset_path = DATA_PATH.joinpath("cil")
+@DATAHANDLER_REGISTRY.register("90k")
+class NinetyKDataHandler(DataHandler):
+    dataset_path = DATA_PATH.joinpath("90k")
 
-    train_path = dataset_path.joinpath("training")
-    train_images_path = train_path.joinpath("images")
-    train_masks_path = train_path.joinpath("groundtruth")
+    train_images_path = dataset_path.joinpath("images")
+    train_masks_path = dataset_path.joinpath("masks")
 
     def __init__(self, batch_size=4, num_workers=4, shuffle=True, resize_to=(400, 400), augment=None):
         self.batch_size = batch_size
@@ -40,7 +39,7 @@ class CILDataHandler(DataHandler):
         ) = train_test_split(images_paths, masks_paths, test_size=0.2, random_state=42)
 
     def get_train_val_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
-        train_dataset = CILDataset(
+        train_dataset = NinetyKDataset(
             self.train_image_paths,
             self.train_mask_paths,
             PATCH_SIZE,
@@ -50,25 +49,24 @@ class CILDataHandler(DataHandler):
             augment=self.augment,
         )
 
-        val_dataset = CILDataset(
+        val_dataset = NinetyKDataset(
             self.val_image_paths,
             self.val_mask_paths,
             PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=["masked"] if "masked" in self.augment else None,
+            augment=None,
         )
 
-
-        train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers)
-        val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers)
+        train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, prefetch_factor=4, pin_memory=True)
+        val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, prefetch_factor=4, pin_memory=True)
 
         return train_dataloader, val_dataloader
 
 
-@DATASET_REGISTRY.register("cil")
-class CILDataset(Dataset):
+@DATASET_REGISTRY.register("90k")
+class NinetyKDataset(Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
     def __init__(
@@ -102,9 +100,7 @@ class CILDataset(Dataset):
             [
                 # params should be a range, we might want to look into it later to tune these params or use defaults
                 A.ColorJitter(brightness=(0.2, 0.2), contrast=(0.2, 0.2)),
-                A.AdvancedBlur(
-                    blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)
-                ),
+                A.AdvancedBlur(blur_limit=(5, 9), sigma_x_limit=(0.1, 5), sigma_y_limit=(0.1, 5)),
             ]
         )
 
@@ -119,26 +115,10 @@ class CILDataset(Dataset):
         if "color" in self.augment:
             x = self.color_transform(image=x)["image"]
 
-        if "masked" in self.augment:
-            x = self.apply_masking(y)
-
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)
         # cv2.waitKey(0)
         return x, y
-
-    def apply_masking(self, mask):
-        # Apply 50x50 patch masking
-        for _ in range(8):  # Hyperparameter: 8 patches
-            i, j = random.randint(0, 350), random.randint(0, 350)
-            mask[i : i + 50, j : j + 50] = 0
-
-        # Apply 16x16 patch flipping
-        for _ in range(25):  # Hyperparameter: 50 patches
-            i, j = random.randint(0, 384), random.randint(0, 384)
-            mask[i : i + 16, j : j + 16] = 1 - mask[i : i + 16, j : j + 16]
-
-        return mask
 
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
@@ -151,16 +131,14 @@ class CILDataset(Dataset):
             mask = cv2.resize(mask, dsize=self.resize_to)
 
         image, mask = self._preprocess(image, mask)
-        if self.augment:
-            image = np.reshape(image, (image.shape[0], image.shape[1], 1))
         image = np.moveaxis(
             image, -1, 0
         )  # pytorch works with CHW format instead of HWC
         mask = np.reshape(mask, (mask.shape[0], mask.shape[1], 1))
         mask = np.moveaxis(mask, -1, 0)  # pytorch works with CHW format instead of HWC
 
-        image_tensor = np_to_tensor(image, self.device)
-        mask_tensor = np_to_tensor(mask, self.device)
+        image_tensor = np_to_tensor(image, "cpu")
+        mask_tensor = np_to_tensor(mask, "cpu")
 
         return image_tensor, mask_tensor
 

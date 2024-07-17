@@ -71,8 +71,9 @@ def train(
 
         # validation
         model.eval()
+        val_pbar = tqdm(val_dataloader, desc=f'Validation:')
         with torch.no_grad():  # do not keep track of gradients
-            for (x, y) in val_dataloader:
+            for (x, y) in val_pbar:
                 x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
                 y_hat = model(x)  # forward pass
                 val_loss = loss_fn(y_hat, y)

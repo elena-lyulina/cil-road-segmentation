@@ -59,9 +59,11 @@ class UNetClassifier(torch.nn.Module):
             nn.Conv2d(dec_chs[-1], 1, 1), nn.Sigmoid()
         )  # 1x1 convolution for producing the output-
 
-        self.l_classifier = torch.nn.Conv2d(in_channels, num_labels, (1, 1))
+        # self.l_classifier = torch.nn.Conv2d(in_channels, num_labels, (1, 1))
 
-    def forward(self, embeddings, pixel_values):
+    def forward(self, inputs):
+        (embeddings, pixel_values) = inputs
+
         embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
         embeddings = embeddings.permute(0, 3, 1, 2)
 
@@ -71,7 +73,6 @@ class UNetClassifier(torch.nn.Module):
         x = self.linear(x)
 
         x = torch.cat((x, pixel_values), dim=1)
-
 
         enc_features = []
         for block in self.enc_blocks[:-1]:
@@ -89,17 +90,32 @@ class UNetClassifier(torch.nn.Module):
         return self.head(x)  # reduce to 1 channel
 
 
+class Dinov2(torch.nn.Module):
+    def __init__(self, config):
+        super(Dinov2, self).__init__()
+        self.dinov2 = Dinov2Model.from_pretrained(config)
+
+    def forward(self, pixel_values, output_hidden_states=False, output_attentions=False):
+        outputs = self.dinov2(pixel_values,
+            output_hidden_states=output_hidden_states,
+            output_attentions=output_attentions,)
+        patch_embeddings = outputs.last_hidden_state[:, 1:, :]
+
+        return (patch_embeddings, pixel_values)
+
 @MODEL_REGISTRY.register("dino_plus_unet")
 # class Dinov2ForSemanticSegmentation(Dinov2PreTrainedModel):
 class Dinov2ForSemanticSegmentation(torch.nn.Module):
     def __init__(self, config="facebook/dinov2-base", hidden_size=768, num_labels=1):
         super().__init__()
+        self.dino = Dinov2(config)
 
-        self.dinov2 = Dinov2Model.from_pretrained(config)
         self.classifier = UNetClassifier(
             hidden_size, 28, 28, num_labels
         )  # 27 because DINO returns 729 patches
         self._freeze_dinov2_parameters()
+
+        self.model = nn.Sequential(self.dino, self.classifier)
 
     def _freeze_dinov2_parameters(self):
         for name, param in self.named_parameters():
@@ -113,18 +129,7 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
         output_attentions=False,
         labels=None,
     ):
-        # use frozen features
-        outputs = self.dinov2(
-            pixel_values,
-            output_hidden_states=output_hidden_states,
-            output_attentions=output_attentions,
-        )
-        # get the patch embeddings - so we exclude the CLS token
-        patch_embeddings = outputs.last_hidden_state[:, 1:, :]
-        # convert to logits and upsample to the size of the pixel values
-        out = self.classifier(patch_embeddings, pixel_values)
-        # min_val, max_val = (torch.min(out), torch.max(out))
-        # out = (out - min_val) / (max_val - min_val)
-        # out = torch.nn.functional.sigmoid(out)
+
+        out = self.model(pixel_values)
 
         return out
