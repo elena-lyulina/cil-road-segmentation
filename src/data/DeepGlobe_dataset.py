@@ -16,7 +16,7 @@ from src.data.NinetyK_dataset import NinetyKDataset
 
 
 @DATAHANDLER_REGISTRY.register("DeepGlobe")
-class NinetyKDataHandler(DataHandler):
+class DeepGlobeDataHandler(DataHandler):
     dataset_path_DeepGlobe = DATA_PATH.joinpath("DeepGlobe")
 
     images_path = dataset_path_DeepGlobe.joinpath("images")
@@ -42,8 +42,8 @@ class NinetyKDataHandler(DataHandler):
     def get_train_val_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
 
         train_dataset = DeepGlobeDataset(
-            self.train_image_paths_DeepGlobe,
-            self.train_mask_paths_DeepGlobe,
+            self.train_image_paths,
+            self.train_mask_paths,
             PATCH_SIZE,
             CUTOFF,
             DEVICE,

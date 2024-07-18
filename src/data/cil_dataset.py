@@ -61,8 +61,8 @@ class CILDataHandler(DataHandler):
         )
 
 
-        train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True)
-        val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True)
+        train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True, prefetch_factor=4, pin_memory=True)
+        val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True, prefetch_factor=4, pin_memory=True)
 
         return train_dataloader, val_dataloader
 
