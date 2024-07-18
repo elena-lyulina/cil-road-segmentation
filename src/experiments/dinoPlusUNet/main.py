@@ -9,6 +9,7 @@ from src.experiments.utils import get_run_name, get_save_path_and_experiment_nam
 cur_config = {
     "model": {
         "name": "dino_plus_unet",
+        'from_pretrained': 'results/dino_plus_unet.json',
         "params": {},
     },
     "dataset": {

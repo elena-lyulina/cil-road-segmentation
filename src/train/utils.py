@@ -9,6 +9,7 @@ DEFAULT_TRAIN_CONFIG = {
     "optimizer": {"name": "Adam", "params": {"lr": 5e-4}},
     "loss": {"name": "BCELoss", "params": {}},
     "clip_grad": None,
+    "n_gpus": 1
 }
 
 
