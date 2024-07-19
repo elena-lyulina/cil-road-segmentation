@@ -68,3 +68,5 @@ def get_loss(config: dict):
             return create_combined_loss(
                 FocalTverskyLoss(), nn.BCELoss(), llambda
             )
+    raise Exception(f'{config["train"]["loss"]} not implemented')
+

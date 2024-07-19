@@ -36,11 +36,15 @@ cur_config = {
         },
         'SWEEP_loss': {'values': [
             'BCELoss',
-            'SoftDiceLoss',
-            'SquaredDiceLoss',
-            'LogCoshDiceLoss',
-            'CenterlineDiceLoss',
-            'FocalTverskyLoss',
+            'sDice',
+            'sqDice',
+            'clDice',
+            'fr',
+            'DiceBCE',
+            'lcDiceBCELoss',
+            'sqDiceBCELoss',
+            'clDiceBCELoss',
+            'ftBCE'
         ]},
 
         'SWEEP_clip_grad': { # a list of possible values for a sweep
