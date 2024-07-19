@@ -30,40 +30,41 @@ def get_optimizer(config: dict, model: nn.Module) -> torch.optim.Optimizer:
 
 
 def get_loss(config: dict):
-    params = config["train"]["loss"]["params"]
-    llambda = params.get("lambda", 1.0)
+    # params = config["train"]["loss"]["params"]
+    # llambda = params.get("lambda", 1.0)
+    llambda = 1.0
 
     def create_combined_loss(loss1, loss2, lambda_param):
         return CombinedLoss(loss1, loss2, lambda_param)
 
-    match config["train"]["loss"]["name"]:
+    match config["train"]["loss"]:
         case "BCELoss":
-            return nn.BCELoss(**params)
+            return nn.BCELoss()
         case "sDice":
-            return SoftDiceLoss(**params)
+            return SoftDiceLoss()
         case "lcDice":
-            return LogCoshDiceLoss(**params)
+            return LogCoshDiceLoss()
         case "sqDice":
-            return SquaredDiceLoss(**params)
+            return SquaredDiceLoss()
         case "clDice":
-            return CenterlineDiceLoss(**params)
+            return CenterlineDiceLoss()
         case "ft":
-            return FocalTverskyLoss(**params)
+            return FocalTverskyLoss()
         case "DiceBCELoss":
-            return create_combined_loss(SoftDiceLoss(**params), nn.BCELoss(), llambda)
+            return create_combined_loss(SoftDiceLoss(), nn.BCELoss(), llambda)
         case "lcDiceBCELoss":
             return create_combined_loss(
-                LogCoshDiceLoss(**params), nn.BCELoss(), llambda
+                LogCoshDiceLoss(), nn.BCELoss(), llambda
             )
         case "sqDiceBCELoss":
             return create_combined_loss(
-                SquaredDiceLoss(**params), nn.BCELoss(), llambda
+                SquaredDiceLoss(), nn.BCELoss(), llambda
             )
         case "clDiceBCELoss":
             return create_combined_loss(
-                CenterlineDiceLoss(**params), nn.BCELoss(), llambda
+                CenterlineDiceLoss(), nn.BCELoss(), llambda
             )
         case "ftBCE":
             return create_combined_loss(
-                FocalTverskyLoss(**params), nn.BCELoss(), llambda
+                FocalTverskyLoss(), nn.BCELoss(), llambda
             )

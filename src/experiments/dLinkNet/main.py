@@ -18,7 +18,7 @@ cur_config = {
             'batch_size': 4,
             'num_workers': 4,
             'shuffle': True,
-            'resize_to': (400, 400),
+            'resize_to': (384, 384),
             'augment': ['geometric']
         }
     },
@@ -31,10 +31,7 @@ cur_config = {
             }
         },
         'loss': {
-            'name': 'BCELoss',
-            'params': {
-
-            }
+            'name': 'BCELoss'
         },
         'clip_grad': None,
         'n_gpus': 1
