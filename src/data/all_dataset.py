@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader, ConcatDataset
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
 from src.data.DeepGlobe_dataset import DeepGlobeDataset
+from src.data.ThirtyK_dataset import ThirtyKDataset
 from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
 from src.data.utils import DATASET_REGISTRY, np_to_tensor
 from src.data.NinetyK_dataset import NinetyKDataset
@@ -17,6 +18,11 @@ class AllDataHandler(DataHandler):
 
     images_path_90k = dataset_path_90k.joinpath("images")
     masks_path_90k = dataset_path_90k.joinpath("masks")
+
+    dataset_path_30k = DATA_PATH.joinpath("30k")
+
+    images_path_30k = dataset_path_30k.joinpath("images")
+    masks_path_30k = dataset_path_30k.joinpath("masks")
 
     dataset_path_DeepGlobe = DATA_PATH.joinpath("DeepGlobe")
 
@@ -33,6 +39,9 @@ class AllDataHandler(DataHandler):
         images_paths_90k = [f for f in sorted(glob(str(self.images_path_90k) + "/*.png"))]
         masks_paths_90k= [f for f in sorted(glob(str(self.masks_path_90k) + "/*.png"))]
 
+        images_paths_30k = [f for f in sorted(glob(str(self.images_path_30k) + "/*.png"))]
+        masks_paths_30k = [f for f in sorted(glob(str(self.masks_path_30k) + "/*.png"))]
+
         images_paths_DeepGlobe = [f for f in sorted(glob(str(self.images_path_DeepGlobe) + "/*.png"))]
         masks_paths_DeepGlobe= [f for f in sorted(glob(str(self.masks_path_DeepGlobe) + "/*.png"))]
 
@@ -42,6 +51,13 @@ class AllDataHandler(DataHandler):
             self.train_mask_paths_90k,
             self.val_mask_paths_90k,
         ) = train_test_split(images_paths_90k, masks_paths_90k, test_size=0.2, random_state=42)
+
+        (
+            self.train_image_paths_30k,
+            self.val_image_paths_30k,
+            self.train_mask_paths_30k,
+            self.val_mask_paths_30k,
+        ) = train_test_split(images_paths_30k, masks_paths_30k, test_size=0.2, random_state=42)
 
         (
             self.train_image_paths_DeepGlobe,
@@ -71,6 +87,26 @@ class AllDataHandler(DataHandler):
             augment=None,
         )
 
+        train_dataset_30k = ThirtyKDataset(
+            self.train_image_paths_30k,
+            self.train_mask_paths_30k,
+            PATCH_SIZE,
+            CUTOFF,
+            DEVICE,
+            resize_to=self.resize_to,
+            augment=self.augment,
+        )
+
+        val_dataset_30k = ThirtyKDataset(
+            self.val_image_paths_30k,
+            self.val_mask_paths_30k,
+            PATCH_SIZE,
+            CUTOFF,
+            DEVICE,
+            resize_to=self.resize_to,
+            augment=None,
+        )
+
         train_dataset_DeepGlobe = DeepGlobeDataset(
             self.train_image_paths_DeepGlobe,
             self.train_mask_paths_DeepGlobe,
@@ -91,8 +127,8 @@ class AllDataHandler(DataHandler):
             augment=None,
         )
 
-        train_dataset = ConcatDataset([train_dataset_90k, train_dataset_DeepGlobe])
-        val_dataset = ConcatDataset([val_dataset_90k, val_dataset_DeepGlobe])
+        train_dataset = ConcatDataset([train_dataset_90k, train_dataset_30k, train_dataset_DeepGlobe])
+        val_dataset = ConcatDataset([val_dataset_90k, val_dataset_30k, val_dataset_DeepGlobe])
 
         train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, prefetch_factor=4, pin_memory=True)
         val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, prefetch_factor=4, pin_memory=True)

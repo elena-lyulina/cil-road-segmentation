@@ -5,11 +5,11 @@ import cv2
 import numpy as np
 
 if __name__ == '__main__':
-    img_folder = 'M:\\CIL_datasets\\DeepGlobe\\patches\\images\\images'
-    mask_folder = 'M:\\CIL_datasets\\DeepGlobe\\patches\\masks\\images'
+    img_folder = 'M:\\CIL_datasets\\data30k\\images'
+    mask_folder = 'M:\\CIL_datasets\\data30k\\groundtruth'
 
-    out_image_folder = 'M:\\CIL_datasets\\DeepGlobe\\patches\\filtered\\images'
-    out_masks_folder = 'M:\\CIL_datasets\\DeepGlobe\\patches\\filtered\\masks'
+    out_image_folder = 'M:\\CIL_datasets\\data30k\\filtered\\images'
+    out_masks_folder = 'M:\\CIL_datasets\\data30k\\filtered\\masks'
 
     img_directory = os.fsencode(img_folder)
     mask_directory = os.fsencode(mask_folder)
