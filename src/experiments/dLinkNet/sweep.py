@@ -26,11 +26,13 @@ cur_config = {
         'n_epochs': 5,
         'optimizer': {
             'name': 'Adam',
-            "SWEEP_lr": {  # a distribution of possible values for a sweep
-                    'distribution': 'uniform',
-                    'min': 0.0001,
-                    'max': 0.01
+            'params': {
+                "SWEEP_lr": {  # a distribution of possible values for a sweep
+                        'distribution': 'uniform',
+                        'min': 0.0001,
+                        'max': 0.01
                 }
+            }
         },
         'SWEEP_loss': {'values': [
             {'name': 'BCELoss', 'params': {}},
@@ -58,11 +60,11 @@ if __name__ == '__main__':
     print(json.dumps(sweep_config, indent=4))
     init_sweep(sweep_config, experiment_name)
 
-    ## Step 3, insert the sweep_id from the output of the previous step, e.g.
-    sweep_id = 'mjv9z9nu'
-
-    ## Step 4, uncomment to make a few runs for the current sweep
-    run_sweep_agent(cur_config, sweep_id, 10, experiment_name, save_path)
+    # ## Step 3, insert the sweep_id from the output of the previous step, e.g.
+    # sweep_id = 'mjv9z9nu'
+    #
+    # ## Step 4, uncomment to make a few runs for the current sweep
+    # run_sweep_agent(cur_config, sweep_id, 10, experiment_name, save_path)
 
 
 
