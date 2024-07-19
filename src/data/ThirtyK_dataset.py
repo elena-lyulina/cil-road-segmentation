@@ -120,7 +120,7 @@ class ThirtyKDataset(Dataset):
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
         img_path, mask_path = self.items[item]
-        image = np.array(Image.open(img_path))[:, :, :3].astype(np.float32) / 255.0
+        image = np.array(Image.open(img_path).convert('RGB'))[:, :, :3].astype(np.float32) / 255.0
         mask = np.array(Image.open(mask_path).convert("L")).astype(np.float32) / 255.0
 
         if self.resize_to != (image.shape[0], image.shape[1]):  # resize images
