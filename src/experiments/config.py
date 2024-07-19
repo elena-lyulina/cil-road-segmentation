@@ -165,4 +165,4 @@ def load_config(config_path: Path) -> dict:
 
 # Run to generate a template config
 if __name__ == "__main__":
-    generate_config("small_unet", "cil")
+    generate_config("dLinkNet", "all")

@@ -1,0 +1,68 @@
+import json
+
+from src.experiments.sweep_config import get_sweep_config, init_sweep, run_sweep_agent
+from src.experiments.utils import get_save_path_and_experiment_name
+
+### Step 1. generate a usual config and modify the parameteres to tune
+cur_config = {
+    'model': {
+        'name': 'dLinkNet',
+        'params': {
+            'num_classes': 1,
+            'num_channels': 3
+        }
+    },
+    'dataset': {
+        'name': 'cil',
+        'params': {
+            'batch_size': 4,
+            'num_workers': 4,
+            'shuffle': True,
+            'resize_to': (400, 400),
+            'augment': None
+        }
+    },
+    'train': {
+        'n_epochs': 5,
+        'optimizer': {
+            'name': 'Adam',
+            "SWEEP_lr": {  # a distribution of possible values for a sweep
+                    'distribution': 'uniform',
+                    'min': 0.0001,
+                    'max': 0.01
+                }
+        },
+        'SWEEP_loss': {'values': [
+            {'name': 'BCELoss', 'params': {}},
+            {'name': 'SoftDiceLoss', 'params': {}},
+            {'name': 'SquaredDiceLoss', 'params': {}},
+            {'name': 'LogCoshDiceLoss', 'params': {}},
+            {'name': 'CenterlineDiceLoss', 'params': {}},
+            {'name': 'FocalTverskyLoss', 'params': {}}
+        ]},
+
+        'SWEEP_clip_grad': { # a list of possible values for a sweep
+            'values': [None, 1]
+        },
+        'n_gpus': 1
+    }
+}
+
+
+
+if __name__ == '__main__':
+    save_path, experiment_name = get_save_path_and_experiment_name(__file__)
+
+    ## Step 2, uncomment to init the sweep
+    sweep_config = get_sweep_config(cur_config)
+    print(json.dumps(sweep_config, indent=4))
+    init_sweep(sweep_config, experiment_name)
+
+    ## Step 3, insert the sweep_id from the output of the previous step, e.g.
+    sweep_id = 'mjv9z9nu'
+
+    ## Step 4, uncomment to make a few runs for the current sweep
+    run_sweep_agent(cur_config, sweep_id, 10, experiment_name, save_path)
+
+
+

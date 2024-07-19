@@ -13,11 +13,13 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': '30k',
+        'name': 'all',
         'params': {
             'batch_size': 4,
+            'num_workers': 4,
             'shuffle': True,
-            'resize_to': (384, 384)
+            'resize_to': (400, 400),
+            'augment': ['geometric']
         }
     },
     'train': {
@@ -29,10 +31,13 @@ cur_config = {
             }
         },
         'loss': {
-            'name': 'DiceBCELoss',
-            'params': { }
+            'name': 'BCELoss',
+            'params': {
+
+            }
         },
-        'clip_grad': None
+        'clip_grad': None,
+        'n_gpus': 1
     }
 }
 
