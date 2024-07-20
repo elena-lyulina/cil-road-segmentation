@@ -13,7 +13,7 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': 'cil',
+        'name': '30k',
         'params': {
             'batch_size': 4,
             'shuffle': True,
