@@ -77,7 +77,7 @@ def run_sweep_config(original_config: dict, save_path: Path, sweep_project: str,
         print(f"Running experiment {sweep_project}, run {run_name}\nResults will be saved to {save_path}\n")
         print(json.dumps(new_config, indent=4))
 
-        parse_config_and_train(new_config, save_path=save_path, run_name=run_name, save_wandb=save_wandb)
+        parse_config_and_train(new_config, save_path=save_path, run_name=run_name, wandb_run=wandb_run, save_wandb=save_wandb)
 
         if wandb_run:
             wandb_run.finish()
