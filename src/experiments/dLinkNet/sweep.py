@@ -8,24 +8,24 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': 'cil',
+        'name': 'all',
         'params': {
             'batch_size': 4,
             'num_workers': 4,
             'shuffle': True,
             'resize_to': (384, 384),
-            'augment': None
+            'augment': ['geometric']
         }
     },
     'train': {
-        'n_epochs': 5,
+        'n_epochs': 2,
         'optimizer': {
             'name': 'Adam',
             'params': {
                 "SWEEP_lr": {  # a distribution of possible values for a sweep
                         'distribution': 'uniform',
                         'min': 0.0001,
-                        'max': 0.001
+                        'max': 0.005
                 }
             }
         },
@@ -34,12 +34,10 @@ cur_config = {
             'sDice',
             'lcDice',
             'sqDice',
-            'clDice',
             'ft',
             'DiceBCELoss',
             'lcDiceBCELoss',
             'sqDiceBCELoss',
-            'clDiceBCELoss',
             'ftBCE'
         ]},
 
@@ -66,10 +64,10 @@ if __name__ == '__main__':
     # init_sweep(sweep_config, experiment_name)
 
     ## Step 3, insert the sweep_id from the output of the previous step, e.g.
-    sweep_id = 'twwp52rs'
+    sweep_id = ''
 
     ## Step 4, uncomment to make a few runs for the current sweep
-    run_sweep_agent(cur_config, sweep_id, 10, experiment_name, save_path)
+    # run_sweep_agent(cur_config, sweep_id, 10, experiment_name, save_path)
 
 
 
