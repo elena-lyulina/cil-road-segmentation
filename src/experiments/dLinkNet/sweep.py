@@ -1,9 +1,4 @@
 import json
-
-from src.experiments.sweep_config import get_sweep_config, init_sweep, run_sweep_agent
-from src.experiments.utils import get_save_path_and_experiment_name
-
-### Step 1. generate a usual config and modify the parameteres to tune
 cur_config = {
     'model': {
         'name': 'dLinkNet',
@@ -30,17 +25,18 @@ cur_config = {
                 "SWEEP_lr": {  # a distribution of possible values for a sweep
                         'distribution': 'uniform',
                         'min': 0.0001,
-                        'max': 0.01
+                        'max': 0.001
                 }
             }
         },
         'SWEEP_loss': {'values': [
             'BCELoss',
             'sDice',
+            'lcDice',
             'sqDice',
             'clDice',
-            'fr',
-            'DiceBCE',
+            'ft',
+            'DiceBCELoss',
             'lcDiceBCELoss',
             'sqDiceBCELoss',
             'clDiceBCELoss',
@@ -53,6 +49,11 @@ cur_config = {
         'n_gpus': 1
     }
 }
+
+from src.experiments.sweep_config import get_sweep_config, init_sweep, run_sweep_agent
+from src.experiments.utils import get_save_path_and_experiment_name
+
+### Step 1. generate a usual config and modify the parameteres to tune
 
 
 
