@@ -36,7 +36,7 @@ def run_config(config: dict, save_path: Path, experiment_name: str, run_name: st
         wandb_run.finish()
 
 
-def parse_config_and_train(config: dict, save_path: Path, run_name: str, wandb_run = None, save_wandb: bool = True):
+def parse_config_and_train(config: dict, save_path: Path, run_name: str, wandb_run=None, save_wandb: bool = True):
     # extracts models / datasets, trains a model, and saves the results
     print(json.dumps(config, indent=4))
 
