@@ -84,7 +84,7 @@ class AllDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=None,
+            augment=["masked"] if "masked" in self.augment else None,
         )
 
         train_dataset_30k = ThirtyKDataset(
@@ -104,7 +104,7 @@ class AllDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=None,
+            augment=["masked"] if "masked" in self.augment else None,
         )
 
         train_dataset_DeepGlobe = DeepGlobeDataset(
@@ -124,7 +124,7 @@ class AllDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=None,
+            augment=["masked"] if "masked" in self.augment else None,
         )
 
         train_dataset = ConcatDataset([train_dataset_90k, train_dataset_30k, train_dataset_DeepGlobe])

@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 import albumentations as A
 import torch
+import random
 
 from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
 from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
@@ -56,7 +57,7 @@ class NinetyKDataHandler(DataHandler):
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
-            augment=None,
+            augment=["masked"] if "masked" in self.augment else None,
         )
 
         train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, prefetch_factor=4, pin_memory=True)
@@ -115,10 +116,26 @@ class NinetyKDataset(Dataset):
         if "color" in self.augment:
             x = self.color_transform(image=x)["image"]
 
+        if "masked" in self.augment:
+            x = self.apply_masking(y)
+
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)
         # cv2.waitKey(0)
         return x, y
+
+    def apply_masking(self, mask):
+        # Apply 50x50 patch masking
+        for _ in range(8):  # Hyperparameter: 8 patches
+            i, j = random.randint(0, 350), random.randint(0, 350)
+            mask[i : i + 50, j : j + 50] = 0
+
+        # Apply 16x16 patch flipping
+        for _ in range(25):  # Hyperparameter: 25 patches
+            i, j = random.randint(0, 384), random.randint(0, 384)
+            mask[i : i + 16, j : j + 16] = 1 - mask[i : i + 16, j : j + 16]
+
+        return mask
 
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
@@ -131,6 +148,8 @@ class NinetyKDataset(Dataset):
             mask = cv2.resize(mask, dsize=self.resize_to)
 
         image, mask = self._preprocess(image, mask)
+        if "masked" in self.augment:
+            image = np.reshape(image, (image.shape[0], image.shape[1], 1))
         image = np.moveaxis(
             image, -1, 0
         )  # pytorch works with CHW format instead of HWC

@@ -8,12 +8,12 @@ from skimage.morphology import skeletonize
 
 
 class SoftDiceLoss(nn.Module):
-    def __init__(self, batch=True):
+    def __init__(self, batch=True, smooth=1.0):
         super(SoftDiceLoss, self).__init__()
         self.batch = batch
+        self.smooth = smooth
 
     def dice_coeff(self, y_pred, y_true):
-        smooth = 1.0
         if self.batch:
             i = torch.sum(y_true)
             j = torch.sum(y_pred)
@@ -22,7 +22,7 @@ class SoftDiceLoss(nn.Module):
             i = y_true.sum(1).sum(1).sum(1)
             j = y_pred.sum(1).sum(1).sum(1)
             intersection = (y_true * y_pred).sum(1).sum(1).sum(1)
-        score = (2.0 * intersection + smooth) / (i + j + smooth)
+        score = (2.0 * intersection + self.smooth) / (i + j + self.smooth)
         return score.mean()
 
     def __call__(self, y_pred, y_true):
@@ -31,12 +31,12 @@ class SoftDiceLoss(nn.Module):
 
 
 class SquaredDiceLoss(nn.Module):
-    def __init__(self, batch=True):
+    def __init__(self, batch=True, smooth=1.0):
         super(SquaredDiceLoss, self).__init__()
         self.batch = batch
+        self.smooth = smooth
 
     def squared_dice_coeff(self, y_pred, y_true):
-        smooth = 1.0
         if self.batch:
             i = torch.sum(torch.square(y_true))
             j = torch.sum(torch.square(y_pred))
@@ -45,7 +45,7 @@ class SquaredDiceLoss(nn.Module):
             i = torch.square(y_true).sum(1).sum(1).sum(1)
             j = torch.square(y_pred).sum(1).sum(1).sum(1)
             intersection = (y_true * y_pred).sum(1).sum(1).sum(1)
-        score = (2.0 * intersection + smooth) / (i + j + smooth)
+        score = (2.0 * intersection + self.smooth) / (i + j + self.smooth)
         return score.mean()
 
     def __call__(self, y_pred, y_true):
@@ -54,10 +54,11 @@ class SquaredDiceLoss(nn.Module):
 
 
 class LogCoshDiceLoss(nn.Module):
-    def __init__(self, batch=True):
+    def __init__(self, batch=True, smooth=1.0):
         super(LogCoshDiceLoss, self).__init__()
         self.batch = batch
-        self.dice_loss = SoftDiceLoss(batch)
+        self.smooth = smooth
+        self.dice_loss = SoftDiceLoss(batch, self.smooth)
 
     def __call__(self, y_pred, y_true):
         dice = self.dice_loss(y_pred, y_true)
