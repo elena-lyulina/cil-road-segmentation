@@ -131,7 +131,7 @@ class NinetyKDataset(Dataset):
             mask[i : i + 50, j : j + 50] = 0
 
         # Apply 16x16 patch flipping
-        for _ in range(25):  # Hyperparameter: 50 patches
+        for _ in range(25):  # Hyperparameter: 25 patches
             i, j = random.randint(0, 384), random.randint(0, 384)
             mask[i : i + 16, j : j + 16] = 1 - mask[i : i + 16, j : j + 16]
 
