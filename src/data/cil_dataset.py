@@ -27,7 +27,7 @@ class CILDataHandler(DataHandler):
         self.num_workers = num_workers
         self.shuffle = shuffle
         self.resize_to = resize_to
-        self.augment = augment
+        self.augment = augment if augment else []
 
         images_paths = [f for f in sorted(glob(str(self.train_images_path) + "/*.png"))]
         masks_paths = [f for f in sorted(glob(str(self.train_masks_path) + "/*.png"))]
