@@ -26,9 +26,7 @@ def accuracy_fn(y_hat, y):
     return (y_hat.round() == y.round()).float().mean()
 
 
-@METRICS_REGISTRY.register('patch_acc')
-def patch_accuracy_fn(y_hat, y):
-    # computes accuracy weighted by patches (metric used on Kaggle for evaluation)
+def patchify(y_hat, y):
     h_patches = y.shape[-2] // PATCH_SIZE
     w_patches = y.shape[-1] // PATCH_SIZE
     #patches_hat = y_hat.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
@@ -37,22 +35,31 @@ def patch_accuracy_fn(y_hat, y):
     patches_hat = torch.mean(y_hat.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE), (-1,-3)) > CUTOFF
     patches = y.reshape(-1, 1, h_patches, PATCH_SIZE, w_patches, PATCH_SIZE).mean((-1, -3)) > CUTOFF
 
+    return patches_hat, patches
+
+
+@METRICS_REGISTRY.register('patch_acc')
+def patch_accuracy_fn(y_hat, y):
+    # computes accuracy weighted by patches (metric used on Kaggle for evaluation)
+    patches_hat, patches = patchify(y_hat, y)
+
     return (patches == patches_hat).float().mean()
 
 
-# @METRICS_REGISTRY.register('recall')
-# def recall_fn(y_hat, y):
-#     return recall_score(y.flatten(), y_hat.round().flatten())
-#
-#
-# @METRICS_REGISTRY.register('precision')
-# def precision_fn(y_hat, y):
-#     return precision_score(y.flatten(), y_hat.round().flatten())
-#
-#
-# @METRICS_REGISTRY.register('f1')
-# def f1_fn(y_hat, y):
-#     return f1_score(y.flatten(), y_hat.round().flatten())
+@METRICS_REGISTRY.register('patch_f1')
+def path_f1_fn(y_hat, y, eps: float = 1e-10):
+    patches_hat, patches = patchify(y_hat, y)
+
+    tp = torch.sum((patches_hat == 1) & (patches == 1)).float()
+    fp = torch.sum((patches_hat == 1) & (patches == 0)).float()
+    fn = torch.sum((patches_hat == 0) & (patches == 1)).float()
+
+    # Compute precision, recall, and F1 score
+    precision = tp / (tp + fp + eps)
+    recall = tp / (tp + fn + eps)
+    f1_score = 2 * precision * recall / (precision + recall + eps)
+
+    return f1_score
 
 
 if __name__ == '__main__':
