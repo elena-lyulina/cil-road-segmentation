@@ -59,8 +59,6 @@ class UNetClassifier(torch.nn.Module):
             nn.Conv2d(dec_chs[-1], 1, 1), nn.Sigmoid()
         )  # 1x1 convolution for producing the output-
 
-        # self.l_classifier = torch.nn.Conv2d(in_channels, num_labels, (1, 1))
-
     def forward(self, inputs):
         (embeddings, pixel_values) = inputs
 
@@ -104,7 +102,6 @@ class Dinov2(torch.nn.Module):
         return (patch_embeddings, pixel_values)
 
 @MODEL_REGISTRY.register("dino_plus_unet")
-# class Dinov2ForSemanticSegmentation(Dinov2PreTrainedModel):
 class Dinov2ForSemanticSegmentation(torch.nn.Module):
     def __init__(self, config="facebook/dinov2-base", hidden_size=768, num_labels=1):
         super().__init__()
@@ -112,7 +109,7 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
 
         self.classifier = UNetClassifier(
             hidden_size, 28, 28, num_labels
-        )  # 27 because DINO returns 729 patches
+        )
         self._freeze_dinov2_parameters()
 
         self.model = nn.Sequential(self.dino, self.classifier)
@@ -131,5 +128,4 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
     ):
 
         out = self.model(pixel_values)
-
         return out

@@ -1,13 +1,8 @@
 import json
 cur_config = {
     'model': {
-        'name': 'deeplabv3plus',
-        'params': {
-            'SWEEP_backbone': {'values': ['hrnetv2_32']},
-            'output_stride': 4,
-            'pretrained_backbone': True,
-            'SWEEP_separable_conv': {'values': [False, True]}
-        }
+        'name': 'dino_plus_unet',
+        'params': {}
     },
     'dataset': {
         'name': 'all',
@@ -24,7 +19,7 @@ cur_config = {
         'optimizer': {
             'name': 'Adam',
             'params': {
-                "SWEEP_lr": {  # a distribution of possible values for a sweep
+                "SWEEP_lr": {
                         'distribution': 'uniform',
                         'min': 0.0001,
                         'max': 0.01
@@ -63,7 +58,7 @@ if __name__ == '__main__':
     ## Step 2, uncomment to init the sweep
     sweep_config = get_sweep_config(cur_config)
     print(json.dumps(sweep_config, indent=4))
-    init_sweep(sweep_config, experiment_name)
+    # init_sweep(sweep_config, experiment_name)
 
     ## Step 3, insert the sweep_id from the output of the previous step, e.g.
     sweep_id = ''

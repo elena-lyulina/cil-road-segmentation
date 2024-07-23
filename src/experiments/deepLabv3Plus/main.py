@@ -6,7 +6,7 @@ cur_config = {
     'model': {
         'name': 'deeplabv3plus',
         'params': {
-            'backbone': 'resnet101',
+            'backbone': 'hrnetv2_32',
             'output_stride': 4,
             'pretrained_backbone': True,
             'separable_conv': False
