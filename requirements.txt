@@ -10,3 +10,5 @@ torchvision==0.17.2
 transformers==4.42.3
 albumentations~=1.4.11
 scikit-image==0.24.0
+segmentation_models_pytorch
+lightning
