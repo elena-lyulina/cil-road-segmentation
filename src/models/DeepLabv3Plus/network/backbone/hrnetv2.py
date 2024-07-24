@@ -160,8 +160,15 @@ class StageModule(nn.Module):
                 if input_index == 0:
                     x_fused.append(self.fuse_layers[branch_output_index][input_index](x[input_index]))
                 else:
-                    x_fused[branch_output_index] = x_fused[branch_output_index] + self.fuse_layers[branch_output_index][
-                        input_index](x[input_index])
+                    x1_shape = x_fused[branch_output_index].shape[2:]
+                    x2_shape = self.fuse_layers[branch_output_index][input_index](x[input_index]).shape[2:]
+                    if x1_shape != x2_shape:
+                        x_fused[branch_output_index] = x_fused[branch_output_index] + F.interpolate(
+                            self.fuse_layers[branch_output_index][input_index](x[input_index]),
+                            size=x_fused[branch_output_index].shape[2:], mode='bilinear', align_corners=True)
+                    else:
+                        x_fused[branch_output_index] = x_fused[branch_output_index] + self.fuse_layers[branch_output_index][
+                            input_index](x[input_index])
 
         # After fusing all streams together, you will need to pass the fused layers
         for i in range(self.output_branches):
