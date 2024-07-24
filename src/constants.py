@@ -7,7 +7,7 @@ import torch
 from pathlib import Path
 
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cuda:3' if torch.cuda.is_available() else 'cpu'
 
 
 #### PATHS ####

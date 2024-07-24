@@ -9,25 +9,25 @@ from src.experiments.utils import get_run_name, get_save_path_and_experiment_nam
 cur_config = {
     "model": {
         "name": "dino_plus_unet",
-        'from_pretrained': 'results/dino_plus_unet.json',
+        'from_pretrained': '/mnt/2tb-1/louis/data/checkpoints/dinoPlusUNet/all/major-sweep-5.json',
         "params": {},
     },
     "dataset": {
-        "name": "90k",
+        "name": "cluster0",
         "params": {"batch_size": 8, "num_workers": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]}
     },
     "train": {
-        "n_epochs": 30,
-        "optimizer": {"name": "Adam", "params": {"lr": 0.0005}},
-        "loss": {"name": "BCELoss", "params": {}},
-        "clip_grad": None,
-        "n_gpus": 2
+        "n_epochs": 5,
+        "optimizer": {"name": "Adam", "params": {"lr": 0.0002}},
+        "loss":"BCELoss",
+        "clip_grad": 1,
+        "n_gpus": 1
     },
 }
 
 
 if __name__ == "__main__":
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
-    run_name = get_run_name(cur_config)
+    run_name = get_run_name(cur_config, "pretrained_all")
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)

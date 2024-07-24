@@ -10,10 +10,11 @@ cur_config = {
         'params': {
             'num_classes': 1,
             'num_channels': 3
-        }
+        },
+        'from_pretrained': '/mnt/2tb-1/louis/data/checkpoints/dLinkNet/all/lyric-sweep-27.json'
     },
     'dataset': {
-        'name': 'all',
+        'name': 'both_clusters',
         'params': {
             'batch_size': 4,
             'num_workers': 4,
@@ -23,16 +24,14 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 10,
+        'n_epochs': 5,
         'optimizer': {
             'name': 'Adam',
             'params': {
                 'lr': 0.0005
             }
         },
-        'loss': {
-            'name': 'BCELoss'
-        },
+        'loss': 'DiceBCELoss',
         'clip_grad': None,
         'n_gpus': 1
     }
@@ -41,6 +40,6 @@ cur_config = {
 
 if __name__ == '__main__':
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
-    run_name = get_run_name(cur_config, "from_CIL_notebook")
+    run_name = get_run_name(cur_config, "pretrained_all")
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
