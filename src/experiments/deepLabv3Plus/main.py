@@ -6,7 +6,7 @@ cur_config = {
     'model': {
         'name': 'deeplabv3plus',
         'params': {
-            'backbone': 'resnet152',
+            'backbone': 'wide_resnet101_2',
             'output_stride': 4,
             'pretrained_backbone': True,
             'separable_conv': False
@@ -28,7 +28,7 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 3,
+        'n_epochs': 1,
         'optimizer': {
             'name': 'Adam',
             'params': {
@@ -36,7 +36,7 @@ cur_config = {
             }
         },
         'loss': {
-            'name': 'BCELoss',
+            'name': 'ftBCE',
             'params': {
 
             }

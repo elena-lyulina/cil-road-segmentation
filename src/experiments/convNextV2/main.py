@@ -33,7 +33,7 @@ cur_config = {
             }
         },
         'loss': {
-            'name': 'BCELoss',
+            'name': 'ftBCE',
             'params': {
 
             }
