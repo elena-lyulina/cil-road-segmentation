@@ -29,12 +29,26 @@ class AllDataHandler(DataHandler):
     images_path_DeepGlobe = dataset_path_DeepGlobe.joinpath("images")
     masks_path_DeepGlobe = dataset_path_DeepGlobe.joinpath("masks")
 
-    def __init__(self, batch_size=4, num_workers=4, shuffle=True, resize_to=(400, 400), augment=None):
+    def __init__(
+        self,
+        batch_size=4,
+        num_workers=4,
+        shuffle=True,
+        resize_to=(400, 400),
+        augment=None,
+        masking_params = {
+            "num_zero_patches": 8,
+            "zero_patch_size": 50,
+            "num_flip_patches": 25,
+            "flip_patch_size": 16,
+        }
+    ):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle = shuffle
         self.resize_to = resize_to
         self.augment = augment
+        self.masking_params = masking_params
 
         images_paths_90k = [f for f in sorted(glob(str(self.images_path_90k) + "/*.png"))]
         masks_paths_90k= [f for f in sorted(glob(str(self.masks_path_90k) + "/*.png"))]
@@ -70,61 +84,61 @@ class AllDataHandler(DataHandler):
         train_dataset_90k = NinetyKDataset(
             self.train_image_paths_90k,
             self.train_mask_paths_90k,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params,
         )
 
         val_dataset_90k = NinetyKDataset(
             self.val_image_paths_90k,
             self.val_mask_paths_90k,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params,
         )
 
         train_dataset_30k = ThirtyKDataset(
             self.train_image_paths_30k,
             self.train_mask_paths_30k,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params
         )
 
         val_dataset_30k = ThirtyKDataset(
             self.val_image_paths_30k,
             self.val_mask_paths_30k,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params
         )
 
         train_dataset_DeepGlobe = DeepGlobeDataset(
             self.train_image_paths_DeepGlobe,
             self.train_mask_paths_DeepGlobe,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params
         )
 
         val_dataset_DeepGlobe = DeepGlobeDataset(
             self.val_image_paths_DeepGlobe,
             self.val_mask_paths_DeepGlobe,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params
         )
 
         train_dataset = ConcatDataset([train_dataset_90k, train_dataset_30k, train_dataset_DeepGlobe])

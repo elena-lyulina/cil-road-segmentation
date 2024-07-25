@@ -22,12 +22,20 @@ class CILDataHandler(DataHandler):
     train_images_path = train_path.joinpath("images")
     train_masks_path = train_path.joinpath("groundtruth")
 
-    def __init__(self, batch_size=4, num_workers=4, shuffle=True, resize_to=(400, 400), augment=None, masking_params = {
+    def __init__(
+        self,
+        batch_size=4,
+        num_workers=4,
+        shuffle=True,
+        resize_to=(400, 400),
+        augment=None,
+        masking_params = {
             "num_zero_patches": 8,
             "zero_patch_size": 50,
             "num_flip_patches": 25,
             "flip_patch_size": 16,
-        }):
+        }
+    ):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle = shuffle
