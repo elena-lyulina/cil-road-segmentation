@@ -1,11 +1,13 @@
-"""
-Partially taken from https://www.towardsdeeplearning.com/dinov2-for-custom-dataset-segmentation-a-comprehensive-tutorial/
-"""
+from src.constants import DEVICE
+from pathlib import Path
+
+import torch
 from torch import nn
 
+from src.models.small_UNet.small_UNet import UNet
 from src.models.utils import MODEL_REGISTRY
-import torch
-from transformers import Dinov2Model, Dinov2PreTrainedModel
+
+from transformers import SamModel, SamProcessor
 
 
 class ConvBlock(nn.Module):
@@ -36,10 +38,9 @@ class UNetClassifier(torch.nn.Module):
         self.width = tokenW
         self.height = tokenH
 
-        self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=384, stride=7, kernel_size=14, padding=2)
-        self.init_upsampling2 = nn.ConvTranspose2d(in_channels=384, out_channels=96, stride=2,
-                                                   kernel_size=4, padding=1)
-        self.linear = nn.Conv2d(in_channels=96, out_channels=3, stride=1,
+        self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=16, stride=6, kernel_size=11, padding=3)
+
+        self.linear = nn.Conv2d(in_channels=16, out_channels=3, stride=1,
                                                    kernel_size=3, padding=1)
 
         self.enc_blocks = nn.ModuleList(
@@ -62,14 +63,10 @@ class UNetClassifier(torch.nn.Module):
     def forward(self, inputs):
         (embeddings, pixel_values) = inputs
 
-        embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
-        embeddings = embeddings.permute(0, 3, 1, 2)
-
         x = self.init_upsampling1(embeddings)
-        x = self.init_upsampling2(x)
-        x = nn.functional.pad(x, (1, 1, 1, 1))
-        x = self.linear(x)
 
+        x = nn.functional.interpolate(x, (400, 400), mode='bilinear')
+        x = self.linear(x)
         x = torch.cat((x, pixel_values), dim=1)
 
         enc_features = []
@@ -88,44 +85,30 @@ class UNetClassifier(torch.nn.Module):
         return self.head(x)  # reduce to 1 channel
 
 
-class Dinov2(torch.nn.Module):
-    def __init__(self, config):
-        super(Dinov2, self).__init__()
-        self.dinov2 = Dinov2Model.from_pretrained(config)
+@MODEL_REGISTRY.register("SAMUNet")
+class SAMUNet(torch.nn.Module):
+    def __init__(self):
+        super(SAMUNet, self).__init__()
 
-    def forward(self, pixel_values, output_hidden_states=False, output_attentions=False):
-        outputs = self.dinov2(pixel_values,
-            output_hidden_states=output_hidden_states,
-            output_attentions=output_attentions,)
-        patch_embeddings = outputs.last_hidden_state[:, 1:, :]
+        # check large and huge model as well. If inference is too long, possibly do it once for each image in data loading; Requires change in dataloader though
+        print('Loading SAM model.')
+        self.sam = SamModel.from_pretrained('facebook/sam-vit-base')
+        self._freeze_sam_encoder()
 
-        return (patch_embeddings, pixel_values)
+        self.classifier = UNetClassifier(256, 64, 64)
 
-@MODEL_REGISTRY.register("dino_plus_unet")
-class Dinov2ForSemanticSegmentation(torch.nn.Module):
-    def __init__(self, config="facebook/dinov2-base", hidden_size=768, num_labels=1):
-        super().__init__()
-        self.dino = Dinov2(config)
-
-        self.classifier = UNetClassifier(
-            hidden_size, 28, 28, num_labels
-        )
-        self._freeze_dinov2_parameters()
-
-        self.model = nn.Sequential(self.dino, self.classifier)
-
-    def _freeze_dinov2_parameters(self):
-        for name, param in self.named_parameters():
-            if name.startswith("dinov2"):
-                param.requires_grad = False
+    def _freeze_sam_encoder(self):
+        for name, param in self.sam.named_parameters():
+            if name.startswith("vision_encoder") or name.startswith("prompt_encoder"):
+                param.requires_grad_(False)
 
     def forward(
-        self,
-        pixel_values,
-        output_hidden_states=False,
-        output_attentions=False,
-        labels=None,
+            self,
+            pixel_values
     ):
 
-        out = self.model(pixel_values)
-        return out
+        upscaled = nn.functional.interpolate(pixel_values, size=(1024, 1024), mode='bilinear')
+        outputs = self.sam.get_image_embeddings(pixel_values=upscaled)
+        pred = self.classifier((outputs, pixel_values))
+
+        return pred
