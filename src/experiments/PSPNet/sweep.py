@@ -1,13 +1,11 @@
 import json
 cur_config = {
     'model': {
-        'name': 'UNetPlusPlus',
+        'name': 'PSPNet',
         'params': {
             'encoder_name': 'resnet101',
             'padding_mode': 'edge',
             'classes': 2,
-            'decoder_use_batchnorm': True,
-            'SWEEP_decoder_attention_type': {'values': [None, 'scse']},
             'activation': 'sigmoid',
             'aux_params': None
         }
