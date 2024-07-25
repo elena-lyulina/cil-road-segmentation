@@ -1,7 +1,7 @@
 import json
 cur_config = {
     'model': {
-        'name': 'PSPNet',
+        'name': 'UNetPlusPlus',
         'params': {
             'encoder_name': 'resnet101',
             'padding_mode': 'edge',

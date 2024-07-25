@@ -7,16 +7,28 @@ class SegModel(pl.LightningModule):
 
     def __init__(self, arch, encoder_name, padding_mode='edge', classes=2, decoder_use_batchnorm=True, decoder_attention_type=None, activation=None, aux_params=None, **kwargs):
         super().__init__()
-        self.model = smp.create_model(
-            arch,
-            encoder_name=encoder_name,
-            classes=classes,
-            decoder_use_batchnorm=decoder_use_batchnorm,
-            decoder_attention_type = decoder_attention_type,
-            activation=activation,
-            aux_params=aux_params,
-            **kwargs
-        )
+        if arch == 'PSPNet':
+            self.model = smp.create_model(
+                arch,
+                encoder_name=encoder_name,
+                classes=classes,
+                # decoder_use_batchnorm=decoder_use_batchnorm,
+                # decoder_attention_type = decoder_attention_type,
+                activation=activation,
+                aux_params=aux_params,
+                **kwargs
+            )
+        else:
+            self.model = smp.create_model(
+                arch,
+                encoder_name=encoder_name,
+                classes=classes,
+                decoder_use_batchnorm=decoder_use_batchnorm,
+                decoder_attention_type = decoder_attention_type,
+                activation=activation,
+                aux_params=aux_params,
+                **kwargs
+            )
         self.padding_mode = padding_mode
 
         params = smp.encoders.get_preprocessing_params(encoder_name)

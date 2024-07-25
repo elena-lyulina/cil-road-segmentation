@@ -8,7 +8,6 @@ cur_config = {
             'encoder_name': 'resnet101',
             'padding_mode': 'edge',
             'classes': 2,
-            'decoder_use_batchnorm': True,
             'decoder_attention_type': None,
             'activation': 'sigmoid',
             'aux_params': None
@@ -32,14 +31,9 @@ cur_config = {
                 'lr': 0.0005
             }
         },
-        'loss': {
-            'name': 'BCELoss',
-            'params': {
-
-            }
-        },
+        'loss': 'BCELoss',
         'clip_grad': None,
-        'n_gpus': 1
+        'n_gpus': 0
     }
 }
 

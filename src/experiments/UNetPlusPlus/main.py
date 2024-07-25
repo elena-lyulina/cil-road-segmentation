@@ -32,14 +32,9 @@ cur_config = {
                 'lr': 0.0005
             }
         },
-        'loss': {
-            'name': 'BCELoss',
-            'params': {
-
-            }
-        },
+        'loss': 'BCELoss',
         'clip_grad': None,
-        'n_gpus': 1
+        'n_gpus': 0
     }
 }
 
