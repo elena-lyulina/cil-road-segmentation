@@ -38,10 +38,9 @@ class UNetClassifier(torch.nn.Module):
         self.width = tokenW
         self.height = tokenH
 
-        self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=384, stride=7, kernel_size=14, padding=2)
-        self.init_upsampling2 = nn.ConvTranspose2d(in_channels=384, out_channels=96, stride=2,
-                                                   kernel_size=4, padding=1)
-        self.linear = nn.Conv2d(in_channels=96, out_channels=3, stride=1,
+        self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=16, stride=6, kernel_size=11, padding=3)
+
+        self.linear = nn.Conv2d(in_channels=16, out_channels=3, stride=1,
                                                    kernel_size=3, padding=1)
 
         self.enc_blocks = nn.ModuleList(
@@ -64,14 +63,10 @@ class UNetClassifier(torch.nn.Module):
     def forward(self, inputs):
         (embeddings, pixel_values) = inputs
 
-        embeddings = embeddings.reshape(-1, self.height, self.width, self.in_channels)
-        embeddings = embeddings.permute(0, 3, 1, 2)
-
         x = self.init_upsampling1(embeddings)
-        x = self.init_upsampling2(x)
-        x = nn.functional.pad(x, (1, 1, 1, 1))
-        x = self.linear(x)
 
+        x = nn.functional.interpolate(x, (400, 400), mode='bilinear')
+        x = self.linear(x)
         x = torch.cat((x, pixel_values), dim=1)
 
         enc_features = []
@@ -101,7 +96,7 @@ class SAMUNet(torch.nn.Module):
         self.processor = SamProcessor.from_pretrained('facebook/sam-vit-base')
         self._freeze_sam_encoder()
 
-        self.classifier = UNetClassifier()
+        self.classifier = UNetClassifier(256, 64, 64)
 
     def _freeze_sam_encoder(self):
         for name, param in self.sam.named_parameters():
@@ -113,19 +108,8 @@ class SAMUNet(torch.nn.Module):
             pixel_values
     ):
 
-        num_batch, ch, width, height = pixel_values.shape
-        # input shapes for SAM
-        originals = torch.empty([num_batch, ch, 1024, 1024]).to(DEVICE)
-        masks = torch.empty([num_batch, 1, 256, 256]).to(DEVICE)
-        for i in range(num_batch):
-            preprocessed = self.processor(pixel_values[i])
-            image = torch.tensor(preprocessed['pixel_values'][0])
-            seg = torch.tensor(preprocessed['labels'][0])
-            originals[i] = image
-            masks[i] = seg
-
-        outputs = self.sam.get_image_embeddings(pixel_values=originals)
-
+        pixel_values = nn.functional.interpolate(pixel_values, size=(1024, 1024), mode='bilinear')
+        outputs = self.sam.get_image_embeddings(pixel_values=pixel_values)
         pred = self.classifier((outputs, pixel_values))
 
         return pred
