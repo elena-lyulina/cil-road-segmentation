@@ -77,6 +77,8 @@ class ConvNextV2(nn.Module):
         self.transforms = timm.data.create_transform(**data_config, is_training=False)
 
     def forward(self, x):
+        if x.shape[1] == 1:
+            x = x.repeat(1, 3, 1, 1)
         outputs = self.model.forward_features(x)
 
         segmentation_map = self.decoder(outputs)

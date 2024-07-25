@@ -6,7 +6,7 @@ cur_config = {
     'model': {
         'name': 'deeplabv3plus',
         'params': {
-            'backbone': 'resnet101',
+            'backbone': 'resnet152',
             'output_stride': 4,
             'pretrained_backbone': True,
             'separable_conv': False
@@ -18,7 +18,13 @@ cur_config = {
             'batch_size': 4,
             'shuffle': True,
             'resize_to': (400, 400),
-            'augment': None
+            'augment': 'masked',
+            'masking_params': {
+                'num_zero_patches': 8,
+                'zero_patch_size': 50,
+                'num_flip_patches': 25,
+                'flip_patch_size': 16
+            }
         }
     },
     'train': {
