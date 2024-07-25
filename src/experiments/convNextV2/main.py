@@ -5,7 +5,8 @@ cur_config = {
     'model': {
         'name': 'convNextV2',
         'params': {
-            'num_classes': 2
+            'num_classes': 2,
+            'freeze_encoder': False
         }
     },
     'dataset': {

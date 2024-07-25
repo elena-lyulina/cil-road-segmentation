@@ -65,12 +65,12 @@ class Decoder(nn.Module):
 
 @MODEL_REGISTRY.register("convNextV2")
 class ConvNextV2(nn.Module):
-    def __init__(self, num_classes=2): 
+    def __init__(self, freeze_encoder = True, num_classes=2): 
         super(ConvNextV2, self).__init__()
 
         self.model = timm.create_model("hf_hub:timm/convnextv2_huge.fcmae_ft_in22k_in1k_512", pretrained=True)
 
-        self.model.stages.requires_grad_(False)  # Freeze the encoder
+        self.model.stages.requires_grad_(freeze_encoder)  # Freeze the encoder
         self.decoder = Decoder()
 
         data_config = timm.data.resolve_model_data_config(self.model)
