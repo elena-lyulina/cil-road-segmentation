@@ -149,7 +149,7 @@ def load_checkpoint(model_path: Path) -> Tuple[ nn.Module, torch.optim.Optimizer
     config_path = model_path.with_suffix('.json')
     config = json.loads(config_path.read_bytes())
 
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(model_path, map_location=DEVICE)
 
     model = get_model(config)
     model.load_state_dict(checkpoint['model_state_dict'])
