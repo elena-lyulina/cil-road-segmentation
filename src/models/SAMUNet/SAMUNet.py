@@ -93,7 +93,6 @@ class SAMUNet(torch.nn.Module):
         # check large and huge model as well. If inference is too long, possibly do it once for each image in data loading; Requires change in dataloader though
         print('Loading SAM model.')
         self.sam = SamModel.from_pretrained('facebook/sam-vit-base')
-        self.processor = SamProcessor.from_pretrained('facebook/sam-vit-base')
         self._freeze_sam_encoder()
 
         self.classifier = UNetClassifier(256, 64, 64)
