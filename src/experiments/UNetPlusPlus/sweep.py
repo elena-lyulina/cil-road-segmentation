@@ -9,13 +9,7 @@ cur_config = {
             'decoder_use_batchnorm': True,
             'SWEEP_decoder_attention_type': {'values': [None, 'scse']},
             'activation': 'sigmoid',
-            'aux_params': {
-                'SWEEP_dropout': {
-                        'distribution': 'uniform',
-                        'min': 0,
-                        'max': 0.999999
-                }
-            }
+            'aux_params': None
         }
     },
     'dataset': {
