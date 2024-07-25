@@ -108,8 +108,8 @@ class SAMUNet(torch.nn.Module):
             pixel_values
     ):
 
-        pixel_values = nn.functional.interpolate(pixel_values, size=(1024, 1024), mode='bilinear')
-        outputs = self.sam.get_image_embeddings(pixel_values=pixel_values)
+        upscaled = nn.functional.interpolate(pixel_values, size=(1024, 1024), mode='bilinear')
+        outputs = self.sam.get_image_embeddings(pixel_values=upscaled)
         pred = self.classifier((outputs, pixel_values))
 
         return pred
