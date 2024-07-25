@@ -13,13 +13,13 @@ cur_config = {
     },
     "dataset": {
         "name": "cil",
-        "params": {"batch_size": 4, "num_workers": 4, "shuffle": True, "resize_to": (400, 400), "augment": ["geometric"]}
+        "params": {"batch_size": 8, "num_workers": 4, "shuffle": True, "resize_to": (384, 384), "augment": ["geometric"]}
     },
     "train": {
         "n_epochs": 5,
-        "optimizer": {"name": "Adam", "params": {"lr": 0.0002}},
-        "loss":"BCELoss",
-        "clip_grad": 1,
+        "optimizer": {"name": "Adam", "params": {"lr": 0.01}},
+        "loss": "BCELoss",
+        "clip_grad": None,
         "n_gpus": 1
     },
 }

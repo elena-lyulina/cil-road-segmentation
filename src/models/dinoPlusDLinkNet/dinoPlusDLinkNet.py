@@ -36,6 +36,7 @@ class Dblock(nn.Module):
         out = x + dilate1_out + dilate2_out + dilate3_out + dilate4_out  # + dilate5_out
         return out
 
+
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels, n_filters):
         super(DecoderBlock, self).__init__()
@@ -66,10 +67,12 @@ class DecoderBlock(nn.Module):
 
 
 class DLinkNetClassifier(nn.Module):
-    def __init__(self, in_channels, num_classes=1):
+    def __init__(self, in_channels, tokenW=384, tokenH=384, num_classes=1):
         super(DLinkNetClassifier, self).__init__()
 
         self.in_channels = in_channels
+        self.width = tokenW
+        self.height = tokenH
 
         self.init_upsampling1 = nn.ConvTranspose2d(in_channels=self.in_channels, out_channels=384, stride=7,
                                                    kernel_size=14, padding=2)
@@ -80,7 +83,7 @@ class DLinkNetClassifier(nn.Module):
 
         filters = [64, 128, 256, 512]
         resnet = models.resnet34(pretrained=True)
-        self.firstconv = resnet.conv1
+        self.firstconv = self.conv1 = nn.Conv2d(6, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.firstbn = resnet.bn1
         self.firstrelu = resnet.relu
         self.firstmaxpool = resnet.maxpool
@@ -110,7 +113,6 @@ class DLinkNetClassifier(nn.Module):
 
         x = self.init_upsampling1(embeddings)
         x = self.init_upsampling2(x)
-        x = nn.functional.pad(x, (1, 1, 1, 1))
         x = self.linear(x)
 
         x = torch.cat((x, pixel_values), dim=1)
@@ -150,11 +152,12 @@ class Dinov2(torch.nn.Module):
 
     def forward(self, pixel_values, output_hidden_states=False, output_attentions=False):
         outputs = self.dinov2(pixel_values,
-            output_hidden_states=output_hidden_states,
-            output_attentions=output_attentions,)
+                              output_hidden_states=output_hidden_states,
+                              output_attentions=output_attentions, )
         patch_embeddings = outputs.last_hidden_state[:, 1:, :]
 
         return (patch_embeddings, pixel_values)
+
 
 @MODEL_REGISTRY.register("dino_plus_dlinknet")
 class Dinov2ForSemanticSegmentation(torch.nn.Module):
@@ -162,7 +165,7 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
         super().__init__()
         self.dino = Dinov2(config)
 
-        self.classifier = DLinkNetClassifier(hidden_size)
+        self.classifier = DLinkNetClassifier(hidden_size, 27, 27)
         self._freeze_dinov2_parameters()
 
         self.model = nn.Sequential(self.dino, self.classifier)
@@ -173,11 +176,11 @@ class Dinov2ForSemanticSegmentation(torch.nn.Module):
                 param.requires_grad = False
 
     def forward(
-        self,
-        pixel_values,
-        output_hidden_states=False,
-        output_attentions=False,
-        labels=None,
+            self,
+            pixel_values,
+            output_hidden_states=False,
+            output_attentions=False,
+            labels=None,
     ):
 
         out = self.model(pixel_values)
