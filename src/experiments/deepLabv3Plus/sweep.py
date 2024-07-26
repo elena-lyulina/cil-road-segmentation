@@ -3,7 +3,7 @@ cur_config = {
     'model': {
         'name': 'deeplabv3plus',
         'params': {
-            'SWEEP_backbone': {'values': ['hrnetv2_32']},
+            'SWEEP_backbone': {'values': ['hrnetv2_32, resnet152']},
             'output_stride': 4,
             'pretrained_backbone': True,
             'SWEEP_separable_conv': {'values': [False, True]}

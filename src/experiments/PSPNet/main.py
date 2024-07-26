@@ -10,7 +10,8 @@ cur_config = {
             'classes': 2,
             'activation': 'sigmoid',
             'aux_params': None
-        }
+        },
+        'from_pretrained': '/ws/cil_checkpoints/PSPNet/all/pious-sweep-27.json'
     },
     'dataset': {
         'name': 'both-clusters',
