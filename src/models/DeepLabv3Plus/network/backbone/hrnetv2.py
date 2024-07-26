@@ -10,7 +10,7 @@ __all__ = ['HRNet', 'hrnetv2_48', 'hrnetv2_32']
 # weights to the folder /checkpoints
 
 model_urls = {
-    'hrnetv2_32': './checkpoints/model_best_epoch96_edit.pth',
+    'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
     'hrnetv2_48': None
 }
 

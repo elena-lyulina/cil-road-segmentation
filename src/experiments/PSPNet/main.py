@@ -20,7 +20,7 @@ cur_config = {
             'num_workers': 4,
             'shuffle': True,
             'resize_to': (400, 400),
-            'augment': None
+            'augment': ['geometric']
         }
     },
     'train': {
