@@ -25,6 +25,8 @@ def test_on_full_images(config_path: Path, resize_to: Tuple[int, int] = (400, 40
     experiment_name = get_experiment_name_from_config(config_path)
     submission_name = config_path.stem
 
+    experiment_name = 'None' # Doesn't work if weights are moved
+
     config = load_config(config_path)
     if config['dataset']['name'] == 'cil':
         real_resize_to = config['dataset']['params'].get('resize_to')
