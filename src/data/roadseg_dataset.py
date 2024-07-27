@@ -1,94 +1,14 @@
-from glob import glob
-from typing import Tuple
-
 import cv2
 import numpy as np
 from PIL import Image
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset, DataLoader, ConcatDataset
+from torch.utils.data import Dataset
 import albumentations as A
 import random
 
-from src.data.roadseg_dataset import RoadSegDataset
-
-from src.constants import DATA_PATH, DEVICE, CUTOFF, PATCH_SIZE
-from src.data.datahandler import DATAHANDLER_REGISTRY, DataHandler
-from src.data.utils import DATASET_REGISTRY, np_to_tensor
+from src.data.utils import np_to_tensor
 
 
-@DATAHANDLER_REGISTRY.register("cil")
-class CILDataHandler(DataHandler):
-    dataset_path = DATA_PATH.joinpath("cil")
-
-    train_path = dataset_path.joinpath("training")
-    train_images_path = train_path.joinpath("images")
-    train_masks_path = train_path.joinpath("groundtruth")
-
-    def __init__(
-        self,
-        batch_size=4,
-        num_workers=4,
-        shuffle=True,
-        resize_to=(400, 400),
-        augment=None,
-        masking_params = {
-            "num_zero_patches": 8,
-            "zero_patch_size": 50,
-            "num_flip_patches": 25,
-            "flip_patch_size": 16,
-        }
-    ):
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.shuffle = shuffle
-        self.resize_to = resize_to
-        self.augment = augment if augment else []
-        self.masking_params = masking_params
-
-        images_paths = [f for f in sorted(glob(str(self.train_images_path) + "/*.png"))]
-        masks_paths = [f for f in sorted(glob(str(self.train_masks_path) + "/*.png"))]
-
-        (
-            self.train_image_paths,
-            self.val_image_paths,
-            self.train_mask_paths,
-            self.val_mask_paths,
-        ) = train_test_split(images_paths, masks_paths, test_size=0.2, random_state=42)
-
-    def get_train_val_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
-        train_dataset = CILDataset(
-            self.train_image_paths,
-            self.train_mask_paths,
-            CUTOFF,
-            DEVICE,
-            resize_to=self.resize_to,
-            augment=self.augment,
-            masking_params=self.masking_params,
-        )
-
-        val_dataset = CILDataset(
-            self.val_image_paths,
-            self.val_mask_paths,
-            CUTOFF,
-            DEVICE,
-            resize_to=self.resize_to,
-            augment=["masked"] if "masked" in self.augment else None,
-            masking_params=self.masking_params,
-        )
-
-
-        train_dataloader = DataLoader(train_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True, prefetch_factor=4, pin_memory=True)
-        val_dataloader = DataLoader(val_dataset, self.batch_size, self.shuffle, num_workers=self.num_workers, drop_last=True, prefetch_factor=4, pin_memory=True)
-
-        return train_dataloader, val_dataloader
-
-# uncomment the following 3 lines to use generic Dataset implementation instead of copy pasting code for every dataset.
-# @DATASET_REGISTRY.register("cil")
-# class CILDataset(RoadSegDataset):
-#         super().__init__(image_paths, mask_paths, cutoff, device, resize_to, augment, masking_params)
-
-@DATASET_REGISTRY.register("cil")
-class CILDataset(Dataset):
+class RoadSegDataset(Dataset):
     # dataset class that deals with loading the data and making it available by index.
 
     def __init__(
@@ -118,7 +38,7 @@ class CILDataset(Dataset):
 
         self.geometric_transform = A.Compose(
             [
-                A.RandomRotate90(),
+                A.Rotate(30),
                 A.VerticalFlip(),
                 A.HorizontalFlip(),
             ]
@@ -159,6 +79,7 @@ class CILDataset(Dataset):
         zero_patch_size = self.masking_params.get("zero_patch_size", 50)
         num_flip_patches = self.masking_params.get("num_flip_patches", 25)
         flip_patch_size = self.masking_params.get("flip_patch_size", 16)
+        noise_threshold = self.masking_params.get("noise_threshold", 0.5)
 
         # Apply patch flipping
         for _ in range(num_flip_patches):
@@ -169,6 +90,17 @@ class CILDataset(Dataset):
         for _ in range(num_zero_patches):
             i, j = random.randint(0, 400 - zero_patch_size), random.randint(0, 400 - zero_patch_size)
             mask[i : i + zero_patch_size, j : j + zero_patch_size] = 0
+
+        # Apply Gaussian noise and binarize it
+        if noise_threshold < 100:
+            noise = np.random.normal(0, 1, mask.shape)
+            random_ones = (noise > noise_threshold).astype(np.float32)
+
+            noise = np.random.normal(0, 1, mask.shape)
+            random_zeros = (noise > noise_threshold).astype(np.float32)
+        
+            mask = mask + random_ones - random_zeros
+            mask = np.clip(mask, 0, 1)
 
         return mask
 
