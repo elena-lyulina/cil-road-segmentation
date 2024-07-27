@@ -13,6 +13,7 @@ from src.data.utils import load_all_from_path, np_to_tensor
 from src.experiments.config import get_model_path_from_config, get_experiment_name_from_config, load_config
 from src.submission.mask_to_submission import create_submission
 from src.train.train import load_checkpoint, make_sure_unique
+from src.voter import hard_voting_pixel_level, soft_voting_pixel_level, hard_voting_patch_level, soft_voting_patch_level
 
 TEST_IMAGES_PATH = DATA_PATH.joinpath('cil/test/images/')
 PREDICTION_PATH = OUT_PATH.joinpath('predictions/')
@@ -131,61 +132,3 @@ def test_model_on_full_images_for_end2end(model: nn.Module, experiment_name: str
                          for img in test_pred], 0)
 
     return test_pred
-
-
-def hard_voting_pixel_level(all_model_outputs):
-    all_predictions = np.zeros_like(all_model_outputs[0])
-
-    for model_output in all_model_outputs:
-        all_predictions += (model_output > 0.5).astype(np.float32)
-
-    # Majority vote
-    all_predictions = (all_predictions >= (
-        len(all_model_outputs) / 2)).astype(np.float32)
-
-    return all_predictions
-
-
-def soft_voting_pixel_level(all_model_outputs):
-    all_predictions = np.zeros_like(all_model_outputs[0], dtype=np.float32)
-
-    for model_output in all_model_outputs:
-        all_predictions += model_output
-
-    # Average predictions
-    all_predictions = (all_predictions / len(all_model_outputs)) > 0.5
-    all_predictions = all_predictions.astype(np.float32)
-
-    return all_predictions
-
-
-def hard_voting_patch_level(all_model_outputs):
-    all_predictions = np.zeros_like(all_model_outputs[0])
-
-    for model_output in all_model_outputs:
-        all_predictions += (model_output > 0.5).astype(np.float32)
-
-    # Reshape to patch level
-    all_predictions_patches = all_predictions.reshape(
-        all_predictions.shape[0], 25, 16, 25, 16)
-    all_predictions_patches = all_predictions_patches.sum(
-        axis=(2, 4)) >= (0.25 * 256 * len(all_model_outputs))
-    all_predictions_patches = all_predictions_patches.astype(np.float32)
-
-    return all_predictions_patches.reshape(all_predictions.shape)
-
-
-def soft_voting_patch_level(all_model_outputs):
-    all_predictions = np.zeros_like(all_model_outputs[0], dtype=np.float32)
-
-    for model_output in all_model_outputs:
-        all_predictions += model_output
-
-    # Reshape to patch level
-    all_predictions_patches = all_predictions.reshape(
-        all_predictions.shape[0], 25, 16, 25, 16)
-    all_predictions_patches = all_predictions_patches.sum(
-        axis=(2, 4)) >= (0.25 * 256 * len(all_model_outputs))
-    all_predictions_patches = all_predictions_patches.astype(np.float32)
-
-    return all_predictions_patches.reshape(all_predictions.shape)
