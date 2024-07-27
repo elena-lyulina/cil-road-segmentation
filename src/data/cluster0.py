@@ -159,7 +159,7 @@ class Cluster0Dataset(Dataset):
         image_tensor = np_to_tensor(image, 'cpu')
         mask_tensor = np_to_tensor(mask, 'cpu')
 
-        return image_tensor, mask_tensor
+        return image_tensor, mask_tensor, "cluster0"
 
     def __len__(self):
         return len(self.items)
