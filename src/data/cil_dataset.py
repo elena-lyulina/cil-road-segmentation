@@ -22,12 +22,26 @@ class CILDataHandler(DataHandler):
     train_images_path = train_path.joinpath("images")
     train_masks_path = train_path.joinpath("groundtruth")
 
-    def __init__(self, batch_size=4, num_workers=4, shuffle=True, resize_to=(400, 400), augment=None):
+    def __init__(
+        self,
+        batch_size=4,
+        num_workers=4,
+        shuffle=True,
+        resize_to=(400, 400),
+        augment=None,
+        masking_params = {
+            "num_zero_patches": 8,
+            "zero_patch_size": 50,
+            "num_flip_patches": 25,
+            "flip_patch_size": 16,
+        }
+    ):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle = shuffle
         self.resize_to = resize_to
         self.augment = augment if augment else []
+        self.masking_params = masking_params
 
         images_paths = [f for f in sorted(glob(str(self.train_images_path) + "/*.png"))]
         masks_paths = [f for f in sorted(glob(str(self.train_masks_path) + "/*.png"))]
@@ -43,21 +57,21 @@ class CILDataHandler(DataHandler):
         train_dataset = CILDataset(
             self.train_image_paths,
             self.train_mask_paths,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params,
         )
 
         val_dataset = CILDataset(
             self.val_image_paths,
             self.val_mask_paths,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params,
         )
 
 
@@ -75,20 +89,25 @@ class CILDataset(Dataset):
         self,
         image_paths,
         mask_paths,
-        patch_size,
         cutoff,
         device,
         resize_to=(400, 400),
         augment=None,
+        masking_params = {
+            "num_zero_patches": 8,
+            "zero_patch_size": 50,
+            "num_flip_patches": 25,
+            "flip_patch_size": 16,
+        }
     ):
         if augment is None:
             augment = []
         self.items = list(zip(image_paths, mask_paths))
-        self.patch_size = patch_size
         self.cutoff = cutoff
         self.device = device
         self.resize_to = resize_to
         self.augment = augment
+        self.masking_params = masking_params
 
         self.geometric_transform = A.Compose(
             [
@@ -128,15 +147,21 @@ class CILDataset(Dataset):
         return x, y
 
     def apply_masking(self, mask):
-        # Apply 50x50 patch masking
-        for _ in range(8):  # Hyperparameter: 8 patches
-            i, j = random.randint(0, 350), random.randint(0, 350)
-            mask[i : i + 50, j : j + 50] = 0
+        #read masking params into local variables, check if they are present in masking_params
+        num_zero_patches = self.masking_params.get("num_zero_patches", 8)
+        zero_patch_size = self.masking_params.get("zero_patch_size", 50)
+        num_flip_patches = self.masking_params.get("num_flip_patches", 25)
+        flip_patch_size = self.masking_params.get("flip_patch_size", 16)
 
-        # Apply 16x16 patch flipping
-        for _ in range(25):  # Hyperparameter: 50 patches
-            i, j = random.randint(0, 384), random.randint(0, 384)
-            mask[i : i + 16, j : j + 16] = 1 - mask[i : i + 16, j : j + 16]
+        # Apply patch flipping
+        for _ in range(num_flip_patches):
+            i, j = random.randint(0, 400 - flip_patch_size), random.randint(0, 400 - flip_patch_size)
+            mask[i : i + flip_patch_size, j : j + flip_patch_size] = 1 - mask[i : i + flip_patch_size, j : j + flip_patch_size]
+        
+        # Apply patch masking
+        for _ in range(num_zero_patches):
+            i, j = random.randint(0, 400 - zero_patch_size), random.randint(0, 400 - zero_patch_size)
+            mask[i : i + zero_patch_size, j : j + zero_patch_size] = 0
 
         return mask
 

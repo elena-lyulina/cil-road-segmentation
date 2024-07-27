@@ -26,5 +26,7 @@ class DeepLabv3Plus(nn.Module):
         set_bn_momentum(self.backbone, momentum=0.01)
     
     def forward(self, x):
+        if x.shape[1] == 1:
+            x = x.repeat(1, 3, 1, 1)
         out = self.model(x)
         return torch.sigmoid(out[:, 0, :, :].unsqueeze(1))
