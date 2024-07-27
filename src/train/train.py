@@ -64,7 +64,7 @@ def train(
 
             optimizer.zero_grad()  # zero out gradients
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-            if dataset is "both_clusters" and modelname is "end2end" and cluster_id is not None:
+            if dataset == "both_clusters" and modelname == "end2end" and cluster_id is not None:
                 y_hat = model((x, cluster_id))
             else:
                 y_hat = model(x)  # forward pass

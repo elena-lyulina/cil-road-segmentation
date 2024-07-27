@@ -1,5 +1,5 @@
 from torch import nn
-import torch
+import json
 from typing import List
 from pathlib import Path
 from src.experiments.config import load_config, get_model_path_from_config, load_checkpoint
@@ -60,7 +60,7 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
     sota_models_cluster1 = []
 
     for config_path in config_paths:
-        config = load_config(config_path)
+        config = json.loads(config_path.read_bytes())
 
         #TODO: is the following code really necessary?
         if config['dataset']['name'] == 'cil':
