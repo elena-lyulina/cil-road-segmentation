@@ -1,10 +1,13 @@
 from torch import nn
+import json
 import torch
 from typing import List
 from pathlib import Path
 from src import voter
 
 from src.models.utils import MODEL_REGISTRY
+from src.train.train import load_checkpoint
+
 
 @MODEL_REGISTRY.register("end2end")
 class End2End(nn.Module):
@@ -61,6 +64,7 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
     sota_models_cluster1 = []
 
     for config_path in config_paths:
+        config_name = config_path
         config = load_config(config_path)
 
         #TODO: is the following code really necessary?
@@ -87,9 +91,9 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
             param.requires_grad = False
 
         # add model to the corresponding cluster
-        if 'luster0' in config_path:
+        if 'luster0' in config_name:
             sota_models_cluster0.append(model)
-        elif 'luster1' in config_path:
+        elif 'luster1' in config_name:
             sota_models_cluster1.append(model)
         else:
             raise ValueError("Model can't be assigned to a cluster. 'luster0' or 'luster1' not found in the config path")

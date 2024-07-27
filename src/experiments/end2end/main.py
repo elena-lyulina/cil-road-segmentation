@@ -6,8 +6,13 @@ cur_config = {
     'model': {
         'name': 'end2end',
         'params': {
-            #TODO 'config_paths': <FILL_ME>,
-            #TODO 'voter': <FILL_ME>,
+            'config_paths': ['/ws/cil_checkpoints/dLinkNet/cil_cluster0/dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json',
+                             '/ws/cil_checkpoints/dLinkNet/cil_cluster1/dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json',
+                             '/ws/cil_checkpoints/PSPNet/cil_cluster0/PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json',
+                             '/ws/cil_checkpoints/PSPNet/cil_cluster1/PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json',
+                             '/ws/cil_checkpoints/masked_deeplab/deeplabv3plus_all_masked_acc1-0_date27-07-2024_12-49-07_1.json'],
+
+            'voter': 'soft_voting_pixel_level',
             'train_mae': True,
             'mode': "voter-then-mae",
             'resize_to': (400, 400)
@@ -20,7 +25,7 @@ cur_config = {
             'num_workers': 4,
             'shuffle': True,
             'resize_to': (400, 400),
-            'augment': None
+            'augment': []
         }
     },
     'train': {
@@ -31,12 +36,7 @@ cur_config = {
                 'lr': 0.0005
             }
         },
-        'loss': {
-            'name': 'BCELoss',
-            'params': {
-
-            }
-        },
+        'loss': 'BCELoss',
         'clip_grad': None,
         'n_gpus': 1
     }
@@ -47,4 +47,4 @@ if __name__ == '__main__':
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
     run_name = get_run_name(cur_config)
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)
