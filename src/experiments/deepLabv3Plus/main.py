@@ -25,7 +25,8 @@ cur_config = {
                 'num_zero_patches': 8,
                 'zero_patch_size': 50,
                 'num_flip_patches': 25,
-                'flip_patch_size': 16
+                'flip_patch_size': 16,
+                'noise_threshold': 0.9
             }
         }
     },
