@@ -11,10 +11,10 @@ cur_config = {
             'pretrained_backbone': True,
             'separable_conv': True
         },
-        'from_pretrained': '/ws/cil_checkpoints/deepLab/both_clusters/deeplabv3plus_both_clusters_pretrained_all.json'
+        'from_pretrained': '/ws/cil_checkpoints/deepLab/all/ruby-sweep-15.json'
     },
     'dataset': {
-        'name': 'cil',
+        'name': 'all',
         'params': {
             'batch_size': 16,
             'num_workers': 4,
@@ -24,7 +24,7 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 20,
+        'n_epochs': 10,
         'optimizer': {
             'name': 'Adam',
             'params': {

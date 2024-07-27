@@ -93,7 +93,7 @@ class DeepGlobeDataset(Dataset):
 
         self.geometric_transform = A.Compose(
             [
-                A.Rotate(30),
+                A.RandomRotate90(),
                 A.VerticalFlip(),
                 A.HorizontalFlip(),
             ]
