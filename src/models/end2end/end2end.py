@@ -65,7 +65,7 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
 
     for config_path in config_paths:
         config_name = config_path
-        config = load_config(config_path)
+        config = load_config(Path(config_path))
 
         #TODO: is the following code really necessary?
         if config['dataset']['name'] == 'cil':
@@ -80,7 +80,7 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
 
 
         # load pretrained sota model
-        model_path = get_model_path_from_config(config_path)
+        model_path = get_model_path_from_config(Path(config_path))
         model, _ = load_checkpoint(model_path)
         if train_mae:
             model.train()
@@ -104,7 +104,7 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
 def load_MAE(mae_config_path: Path, train_mae: bool):
     from src.experiments.config import get_model_path_from_config, load_checkpoint
 
-    model_path = get_model_path_from_config(mae_config_path)
+    model_path = get_model_path_from_config(Path(mae_config_path))
     model, _ = load_checkpoint(model_path)
 
     if train_mae:
