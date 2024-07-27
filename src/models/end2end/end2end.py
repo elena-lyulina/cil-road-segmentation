@@ -2,7 +2,6 @@ from torch import nn
 import json
 from typing import List
 from pathlib import Path
-from src.experiments.config import load_config, get_model_path_from_config, load_checkpoint
 from src import voter
 
 from src.models.utils import MODEL_REGISTRY
@@ -75,7 +74,8 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
 
 
         # load pretrained sota model
-        model_path = get_model_path_from_config(config_path)
+        model_path = config_path.with_suffix('.pth')
+        assert model_path.exists(), f"No model found for config {config_path.absolute()}"
         model, _ = load_checkpoint(model_path)
         if train_mae:
             model.train()
@@ -96,8 +96,10 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
     return sota_models_cluster0, sota_models_cluster1
 
 
-def load_MAE(mae_config_path: Path, train_mae: bool):
-    model_path = get_model_path_from_config(mae_config_path)
+def load_MAE(config_path: Path, train_mae: bool):
+    from src.experiments.config import load_checkpoint
+    model_path = config_path.with_suffix('.pth')
+    assert model_path.exists(), f"No model found for config {config_path.absolute()}"
     model, _ = load_checkpoint(model_path)
 
     if train_mae:
