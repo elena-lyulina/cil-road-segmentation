@@ -53,35 +53,35 @@ def train(
         # training
         model.train()
 
-        # for batch in pbar:
-        #     if len(batch) == 2:
-        #         x, y = batch
-        #         cluster_id = None  # or some default value if needed
-        #     elif len(batch) == 3:
-        #         x, y, cluster_id = batch
-        #     else:
-        #         raise ValueError("Unexpected batch size: expected 2 or 3 items, got {}".format(len(batch)))
-        #
-        #     optimizer.zero_grad()  # zero out gradients
-        #     x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-        #     if dataset == "both_clusters" and modelname == "end2end" and cluster_id is not None:
-        #         y_hat = model((x, cluster_id))
-        #     else:
-        #         y_hat = model(x)  # forward pass
-        #     loss = loss_fn(y_hat, y)
-        #     loss.backward()  # backward pass
-        #
-        #     if clip_grad is not None:  # clip gradients if needed
-        #         nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
-        #
-        #     optimizer.step()  # optimize weights
-        #
-        #     # log partial metrics
-        #     with torch.no_grad():  # don't need gradients for metrics
-        #         metrics['loss'].append(loss.item())
-        #         for k, fn in metric_fns.items():
-        #             metrics[k].append(fn(y_hat, y).item())
-        #         pbar.set_postfix({k: sum(v) / len(v) for k, v in metrics.items() if len(v) > 0})
+        for batch in pbar:
+            if len(batch) == 2:
+                x, y = batch
+                cluster_id = None  # or some default value if needed
+            elif len(batch) == 3:
+                x, y, cluster_id = batch
+            else:
+                raise ValueError("Unexpected batch size: expected 2 or 3 items, got {}".format(len(batch)))
+
+            optimizer.zero_grad()  # zero out gradients
+            x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
+            if dataset == "both_clusters" and modelname == "end2end" and cluster_id is not None:
+                y_hat = model((x, cluster_id))
+            else:
+                y_hat = model(x)  # forward pass
+            loss = loss_fn(y_hat, y)
+            loss.backward()  # backward pass
+
+            if clip_grad is not None:  # clip gradients if needed
+                nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+
+            optimizer.step()  # optimize weights
+
+            # log partial metrics
+            with torch.no_grad():  # don't need gradients for metrics
+                metrics['loss'].append(loss.item())
+                for k, fn in metric_fns.items():
+                    metrics[k].append(fn(y_hat, y).item())
+                pbar.set_postfix({k: sum(v) / len(v) for k, v in metrics.items() if len(v) > 0})
 
         # validation
         model.eval()
