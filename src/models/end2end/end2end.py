@@ -5,6 +5,7 @@ import torch
 from typing import List
 from pathlib import Path
 from src import voter
+import numpy as np
 
 from src.models.utils import MODEL_REGISTRY
 from src.train.train import load_checkpoint
@@ -76,8 +77,11 @@ class End2End(nn.Module):
     #             predictions[idx] = pred
 
     def vote(self, predictions):
+        def reshape_prediction(prediction):
+            return prediction.reshape(-1, 400, 400)
+
         try:
-            return voter.__dict__[self.voter](list(torch.unbind(predictions.reshape(-1, 400, 400), dim=0)))
+            return voter.__dict__[self.voter](list(map(reshape_prediction, predictions)))
         except KeyError:
             raise ValueError("Invalid voter type")
                 
