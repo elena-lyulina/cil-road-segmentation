@@ -54,8 +54,10 @@ class End2End(nn.Module):
         #     raise ValueError("Some elements were not processed correctly")
 
         if self.mode == 'voter-then-mae':
+
             predictions = self.vote(predictions)
-            return self.mae(torch.stack(predictions, dim=0))
+            predictions = predictions.unsqueeze(1)
+            return self.mae(predictions)
         
         elif self.mode == 'mae-then-voter':
             predictions = [self.mae(prediction) for prediction in predictions]
