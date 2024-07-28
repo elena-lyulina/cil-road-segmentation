@@ -3,6 +3,7 @@ import time
 
 import torch
 import torch.nn as nn
+import torchvision
 from torchvision import models
 import torch.nn.functional as F
 
@@ -97,6 +98,9 @@ class DinkNet34(nn.Module):
         self.finalconv3 = nn.Conv2d(32, num_classes, 3, padding=1)
 
     def forward(self, x):
+
+        x = torchvision.transforms.Resize((384, 384))(x)
+
         # Encoder
         x = self.firstconv(x)
         x = self.firstbn(x)
@@ -122,5 +126,8 @@ class DinkNet34(nn.Module):
         out = self.finalrelu2(out)
         out = self.finalconv3(out)
 
-        return F.sigmoid(out)
+        out = F.sigmoid(out)
+        out = torchvision.transforms.Resize((400, 400))(out)
+
+        return out
 

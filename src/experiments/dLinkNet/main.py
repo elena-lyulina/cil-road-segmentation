@@ -11,7 +11,6 @@ cur_config = {
             'num_classes': 1,
             'num_channels': 3
         },
-        'from_pretrained': '/ws/cil_checkpoints/dLinkNet/both_clusters/dLinkNet_both_clusters_pretrained_all.json'
     },
     'dataset': {
         'name': 'cil',
@@ -19,7 +18,7 @@ cur_config = {
             'batch_size': 4,
             'num_workers': 4,
             'shuffle': True,
-            'resize_to': (384, 384),
+            'resize_to': (400, 400),
             'augment': ['geometric']
         }
     },

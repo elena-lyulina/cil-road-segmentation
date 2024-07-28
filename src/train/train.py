@@ -34,6 +34,9 @@ def train(
     # reading config
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
+    dataset = config["dataset"]["name"]
+    modelname = config["model"]["name"]
+
     loss_fn = get_loss(config)
 
     history = {}  # collects metrics at the end of each epoch
@@ -50,10 +53,21 @@ def train(
         # training
         model.train()
 
-        for (x, y) in pbar:
+        for batch in pbar:
+            if len(batch) == 2:
+                x, y = batch
+                cluster_id = None  # or some default value if needed
+            elif len(batch) == 3:
+                x, y, cluster_id = batch
+            else:
+                raise ValueError("Unexpected batch size: expected 2 or 3 items, got {}".format(len(batch)))
+
             optimizer.zero_grad()  # zero out gradients
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-            y_hat = model(x)  # forward pass
+            if dataset == "both_clusters" and modelname == "end2end" and cluster_id is not None:
+                y_hat = model((x, cluster_id))
+            else:
+                y_hat = model(x)  # forward pass
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
 
