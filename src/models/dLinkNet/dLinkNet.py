@@ -127,7 +127,7 @@ class DinkNet34(nn.Module):
         out = self.finalconv3(out)
 
         out = F.sigmoid(out)
-        out = torchvision.transforms.Resize((400, 400))(x)
+        out = torchvision.transforms.Resize((400, 400))(out)
 
         return out
 
