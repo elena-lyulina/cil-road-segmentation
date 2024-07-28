@@ -35,12 +35,16 @@ class End2End(nn.Module):
             predictions_i = []
             for image, cluster_id in zip(x_list, cluster_ids):
                 image = torch.unsqueeze(image, 0).float()
+                image = torch.stack((image, image), dim=0)
                 if cluster_id == 0:
-                    predictions_i.append(model0(image))
+                    pred = model0(image)
                 elif cluster_id == 1:
-                    predictions_i.append(model1(image))
+                    pred = model1(image)
                 else:
                     raise ValueError("Invalid cluster id")
+                pred = pred[0]
+                predictions_i.append(pred)
+
             
             predictions.append(torch.stack(predictions_i))
         
