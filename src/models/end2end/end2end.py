@@ -22,43 +22,70 @@ class End2End(nn.Module):
     
     def forward(self, x):
         if isinstance(x, tuple):
-            x, cluster_id = x
+            x, cluster_ids = x
+            cluster_ids = cluster_ids.squeeze().toList()
         else:
-            cluster_id = None
+            raise ValueError("Expected a tuple (x, cluster_ids). Talk to Diego")
+
+        x_list = list(torch.unbind(x, dim=0))
+        predictions = []
+
+        for model0, model1 in zip(self.sota_models_cluster0, self.sota_models_cluster1):
+            #model0 and model1 are the same architecture
+            predictions_i = []
+            for image, cluster_id in zip(x_list, cluster_ids):
+                if cluster_id == 0:
+                    predictions_i.append(model0(image))
+                elif cluster_id == 1:
+                    predictions_i.append(model1(image))
+                else:
+                    raise ValueError("Invalid cluster id")
+            
+            predictions.append(torch.stack(predictions_i))
         
+        # predictions = [None] * x.size(0)
+        # self.process_cluster(x, cluster_ids, predictions, 0, self.sota_models_cluster0)
+        # self.process_cluster(x, cluster_ids, predictions, 1, self.sota_models_cluster1)
+        # if None in predictions:
+        #     raise ValueError("Some elements were not processed correctly")
+
         if self.mode == 'voter-then-mae':
-            if cluster_id == 0:
-                predictions = [model(x) for model in self.sota_models_cluster0]
-            elif cluster_id == 1:
-                predictions = [model(x) for model in self.sota_models_cluster1]
-            else:
-                raise ValueError("cluster_id not found. This dataset is not supported. Dataset.__getitem__ must return a tuple with the cluster id. Check cluster1.py for reference.")
-            
-            try:
-                predictions = voter.__dict__[self.voter](predictions)
-            except KeyError:
-                raise ValueError("Invalid voter type")
-            
-            return self.mae(predictions)
+            predictions = self.vote(predictions)
+            return self.mae(torch.stack(predictions, dim=0))
         
         elif self.mode == 'mae-then-voter':
-            if cluster_id == 0:
-                predictions = [model(x) for model in self.sota_models_cluster0]
-            elif cluster_id == 1:
-                predictions = [model(x) for model in self.sota_models_cluster1]
-            else:
-                raise ValueError("cluster_id not found. This dataset is not supported. Dataset.__getitem__ must return a tuple with the cluster id. Check cluster1.py for reference.")
-            
             predictions = [self.mae(prediction) for prediction in predictions]
+            return self.vote(predictions)
+        
+        else:
+            raise ValueError("Invalid mode. Choose 'voter-then-mae' or 'mae-then-voter'.")
+            
+            
+    # def process_cluster(self, x, cluster_ids, predictions, cluster_id, models):
+    #     mask = (cluster_ids.squeeze() == cluster_id)
+    #     if mask.any():
+    #         x_cluster = x[mask]
+    #         predictions_cluster = [model(x_cluster) for model in models]
+    #         indices = mask.nonzero(as_tuple=False).squeeze().tolist()
+    #         for idx, pred in zip(indices, predictions_cluster):
+    #             predictions[idx] = pred
 
-            try:
-                return voter.__dict__[self.voter](predictions)
-            except KeyError:
-                raise ValueError("Invalid voter type")
+    def vote(self, predictions):
+        try:
+            return voter.__dict__[self.voter](predictions.reshape(-1, 400, 400))
+        except KeyError:
+            raise ValueError("Invalid voter type")
                 
 
 def load_sota_models(config_paths: List[Path], train_mae, resize_to):
     from src.experiments.config import load_config, get_model_path_from_config, load_checkpoint
+
+    #check that every two consecutive models are the same architecture
+    for i in range(0, len(config_paths), 2):
+        config0 = load_config(config_paths[i])
+        config1 = load_config(config_paths[i + 1])
+        if config0['model']['name'] != config1['model']['name']:
+            raise ValueError("Consecutive Models must be the same architecture")
 
     sota_models_cluster0 = []
     sota_models_cluster1 = []

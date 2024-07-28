@@ -159,8 +159,9 @@ class Cluster1Dataset(Dataset):
 
         image_tensor = np_to_tensor(image, 'cpu')
         mask_tensor = np_to_tensor(mask, 'cpu')
+        cluster_id = np_to_tensor(np.array([1]), 'cpu')
 
-        return image_tensor, mask_tensor, "cluster1"
+        return image_tensor, mask_tensor, cluster_id
 
     def __len__(self):
         return len(self.items)
