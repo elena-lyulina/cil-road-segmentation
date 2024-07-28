@@ -6,11 +6,15 @@ cur_config = {
     'model': {
         'name': 'end2end',
         'params': {
-            'config_paths': ['src/experiments/dLinkNet/results/dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json',
-                             'src/experiments/dLinkNet/results/dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json',
-                             'src/experiments/PSPNet/results/PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json',
-                             'src/experiments/PSPNet/results/PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json',
-                             'src/experiments/deepLabv3Plus/results/deeplabv3plus_all_masked_acc1-0_date27-07-2024_12-49-07_1.json'],
+            'config_paths': ['/ws/cil_checkpoints/dLinkNet/cil_cluster0/dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json',
+                             '/ws/cil_checkpoints/dLinkNet/cil_cluster1/dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json',
+                             '/ws/cil_checkpoints/PSPNet/cil_cluster0/PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json',
+                             '/ws/cil_checkpoints/PSPNet/cil_cluster1/PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json',
+                             '/ws/cil_checkpoints/UNetPlusPlus/cil_cluster0/unetplusplus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-05-53_9.json',
+                             '/ws/cil_checkpoints/UNetPlusPlus/cil_cluster1/unetplusplus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-15-39_3.json',
+                             '/ws/cil_checkpoints/deepLab/hrnet/cil_cluster0/deeplabv3plus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-25-35_3.json',
+                             '/ws/cil_checkpoints/deepLab/hrnet/cil_cluster1/deeplabv3plus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-43-49_4.json',
+                             '/ws/cil_checkpoints/masked_deeplab/deeplabv3plus_all_masked_acc1-0_date27-07-2024_12-49-07_1.json'],
 
             'voter': 'soft_voting_pixel_level',
             'train_mae': True,

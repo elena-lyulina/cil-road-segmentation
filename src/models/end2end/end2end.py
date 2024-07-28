@@ -23,7 +23,7 @@ class End2End(nn.Module):
     def forward(self, x):
         if isinstance(x, tuple):
             x, cluster_ids = x
-            cluster_ids = cluster_ids.squeeze().toList()
+            cluster_ids = cluster_ids.squeeze().tolist()
         else:
             raise ValueError("Expected a tuple (x, cluster_ids). Talk to Diego")
 
@@ -34,6 +34,7 @@ class End2End(nn.Module):
             #model0 and model1 are the same architecture
             predictions_i = []
             for image, cluster_id in zip(x_list, cluster_ids):
+                image = torch.unsqueeze(image, 0).float()
                 if cluster_id == 0:
                     predictions_i.append(model0(image))
                 elif cluster_id == 1:
@@ -82,8 +83,8 @@ def load_sota_models(config_paths: List[Path], train_mae, resize_to):
 
     #check that every two consecutive models are the same architecture
     for i in range(0, len(config_paths), 2):
-        config0 = load_config(config_paths[i])
-        config1 = load_config(config_paths[i + 1])
+        config0 = load_config(Path(config_paths[i]))
+        config1 = load_config(Path(config_paths[i + 1]))
         if config0['model']['name'] != config1['model']['name']:
             raise ValueError("Consecutive Models must be the same architecture")
 
