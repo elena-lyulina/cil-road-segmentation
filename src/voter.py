@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+
 
 def hard_voting_pixel_level(all_model_outputs):
     all_predictions = np.zeros_like(all_model_outputs[0])
@@ -14,14 +16,14 @@ def hard_voting_pixel_level(all_model_outputs):
 
 
 def soft_voting_pixel_level(all_model_outputs):
-    all_predictions = np.zeros_like(all_model_outputs[0], dtype=np.float32)
+    all_predictions = torch.zeros_like(all_model_outputs[0], dtype=np.float32)
 
     for model_output in all_model_outputs:
         all_predictions += model_output
 
     # Average predictions
     all_predictions = (all_predictions / len(all_model_outputs)) > 0.5
-    all_predictions = all_predictions.astype(np.float32)
+    all_predictions = all_predictions.astype(torch.float32)
 
     return all_predictions
 
