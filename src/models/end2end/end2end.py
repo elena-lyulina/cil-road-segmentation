@@ -29,13 +29,12 @@ class End2End(nn.Module):
             raise ValueError("Expected a tuple (x, cluster_ids). Talk to Diego")
 
         x_list = list(torch.unbind(x, dim=0))
-        predictions = []
+        predictions = torch.empty_like((1, 1, 400, 400))
 
         for model0, model1 in zip(self.sota_models_cluster0, self.sota_models_cluster1):
             #model0 and model1 are the same architecture
-            predictions_i = []
+            predictions_i = torch.empty_like((1, 400, 400))
             for image, cluster_id in zip(x_list, cluster_ids):
-                image = torch.unsqueeze(image, 0).float()
                 image = torch.stack((image, image), dim=0)
                 if cluster_id == 0:
                     pred = model0(image)
@@ -44,18 +43,16 @@ class End2End(nn.Module):
                 else:
                     raise ValueError("Invalid cluster id")
                 pred = pred[0]
-                predictions_i.append(pred)
+                torch.cat((predictions_i, pred), dim=0)
 
-            
-            predictions.append(torch.stack(predictions_i))
+            torch.unsqueeze(predictions_i, dim=0)
+            torch.cat((predictions, predictions_i), dim=0)
         
         # predictions = [None] * x.size(0)
         # self.process_cluster(x, cluster_ids, predictions, 0, self.sota_models_cluster0)
         # self.process_cluster(x, cluster_ids, predictions, 1, self.sota_models_cluster1)
         # if None in predictions:
         #     raise ValueError("Some elements were not processed correctly")
-
-        predictions = torch.tensor(predictions)
 
         if self.mode == 'voter-then-mae':
             predictions = self.vote(predictions)
