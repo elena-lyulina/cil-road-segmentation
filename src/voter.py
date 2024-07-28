@@ -54,7 +54,7 @@ def soft_voting_patch_level(all_model_outputs):
     all_predictions_patches = all_predictions.reshape(
         all_predictions.shape[0], 25, 16, 25, 16)
     all_predictions_patches = all_predictions_patches.sum(
-        axis=(2, 4)) >= (0.25 * 256 * len(all_model_outputs))
+        axis=(2, 4)) >= (0.5 * 0.25 * 256 * len(all_model_outputs))
     all_predictions_patches = all_predictions_patches.astype(np.float32)
 
     all_predictions_expanded = np.kron(
