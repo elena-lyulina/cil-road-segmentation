@@ -29,11 +29,11 @@ class End2End(nn.Module):
             raise ValueError("Expected a tuple (x, cluster_ids). Talk to Diego")
 
         x_list = list(torch.unbind(x, dim=0))
-        predictions = torch.empty_like((1, 1, 400, 400))
+        predictions = torch.empty((1, 1, 400, 400))
 
         for model0, model1 in zip(self.sota_models_cluster0, self.sota_models_cluster1):
             #model0 and model1 are the same architecture
-            predictions_i = torch.empty_like((1, 400, 400))
+            predictions_i = torch.empty((1, 400, 400))
             for image, cluster_id in zip(x_list, cluster_ids):
                 image = torch.stack((image, image), dim=0)
                 if cluster_id == 0:
@@ -45,7 +45,7 @@ class End2End(nn.Module):
                 pred = pred[0]
                 torch.cat((predictions_i, pred), dim=0)
 
-            torch.unsqueeze(predictions_i, dim=0)
+            predictions_i = torch.unsqueeze(predictions_i, dim=0)
             torch.cat((predictions, predictions_i), dim=0)
         
         # predictions = [None] * x.size(0)
