@@ -1,3 +1,4 @@
+import numpy as np
 from torch import nn
 import json
 import torch
@@ -53,6 +54,8 @@ class End2End(nn.Module):
         # self.process_cluster(x, cluster_ids, predictions, 1, self.sota_models_cluster1)
         # if None in predictions:
         #     raise ValueError("Some elements were not processed correctly")
+
+        predictions = torch.tensor(predictions)
 
         if self.mode == 'voter-then-mae':
             predictions = self.vote(predictions)
