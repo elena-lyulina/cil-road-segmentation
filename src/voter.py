@@ -39,8 +39,10 @@ def hard_voting_patch_level(all_model_outputs):
         axis=(2, 4)) >= (0.25 * 256 * len(all_model_outputs))
     all_predictions_patches = all_predictions_patches.astype(np.float32)
 
-    return all_predictions_patches.reshape(all_predictions.shape)
+    all_predictions_expanded = np.kron(
+        all_predictions_patches, np.ones((16, 16), dtype=np.float32))
 
+    return all_predictions_expanded
 
 def soft_voting_patch_level(all_model_outputs):
     all_predictions = np.zeros_like(all_model_outputs[0], dtype=np.float32)
@@ -55,4 +57,7 @@ def soft_voting_patch_level(all_model_outputs):
         axis=(2, 4)) >= (0.25 * 256 * len(all_model_outputs))
     all_predictions_patches = all_predictions_patches.astype(np.float32)
 
-    return all_predictions_patches.reshape(all_predictions.shape)
+    all_predictions_expanded = np.kron(
+        all_predictions_patches, np.ones((16, 16), dtype=np.float32))
+
+    return all_predictions_expanded
