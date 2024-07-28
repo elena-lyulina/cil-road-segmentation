@@ -80,7 +80,7 @@ class End2End(nn.Module):
 
     def vote(self, predictions):
         try:
-            return voter.__dict__[self.voter](predictions.reshape(-1, 400, 400))
+            return voter.__dict__[self.voter](list(torch.unbind(predictions.reshape(-1, 400, 400), dim=0)))
         except KeyError:
             raise ValueError("Invalid voter type")
                 
