@@ -62,6 +62,9 @@ class End2End(nn.Module):
         elif self.mode == 'mae-then-voter':
             predictions = [self.mae(prediction) for prediction in predictions]
             return self.vote(predictions)
+
+        elif self.mode == 'no-mae':
+            return predictions
         
         else:
             raise ValueError("Invalid mode. Choose 'voter-then-mae' or 'mae-then-voter'.")

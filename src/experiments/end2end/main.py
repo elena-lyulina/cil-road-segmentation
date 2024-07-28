@@ -18,7 +18,7 @@ cur_config = {
 
             'voter': 'soft_voting_pixel_level',
             'train_mae': True,
-            'mode': "voter-then-mae",
+            'mode': "no-mae",
             'resize_to': (400, 400)
         }
     },
