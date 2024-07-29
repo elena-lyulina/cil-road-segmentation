@@ -6,14 +6,14 @@ import matplotlib.image as mpimg
 import re
 import PIL
 
-from absl import app, flags
+# from absl import app, flags
 
-FLAGS = flags.FLAGS
-
-flags.DEFINE_string(
-    "submission_filename", "dummy_submission.csv", "The output csv for the submission.")
-flags.DEFINE_string(
-    "base_dir", "training/groundtruth", "The directory with the predicted masks.")
+# FLAGS = flags.FLAGS
+#
+# flags.DEFINE_string(
+#     "submission_filename", "dummy_submission.csv", "The output csv for the submission.")
+# flags.DEFINE_string(
+#     "base_dir", "training/groundtruth", "The directory with the predicted masks.")
 
 foreground_threshold = 0.25  # percentage of pixels of val 255 required to assign a foreground label to a patch
 
@@ -65,13 +65,13 @@ def masks_to_submission(submission_filename, mask_dir, image_filenames):
             f.writelines('{}\n'.format(s) for s in mask_to_submission_strings(fn, mask_dir=mask_dir))
 
 
-def main(_):
-    image_filenames = [os.path.join(FLAGS.base_dir, name) for name in os.listdir(FLAGS.base_dir)]
-    masks_to_submission(FLAGS.submission_filename, "", *image_filenames)
-
-
-if __name__ == '__main__':
-    app.run(main)
+# def main(_):
+#     image_filenames = [os.path.join(FLAGS.base_dir, name) for name in os.listdir(FLAGS.base_dir)]
+#     masks_to_submission(FLAGS.submission_filename, "", *image_filenames)
+#
+#
+# if __name__ == '__main__':
+#     app.run(main)
 
 
 def create_submission(test_pred, test_filenames, submission_filename, patch_size):

@@ -1,3 +1,4 @@
+import json
 import os
 from glob import glob
 from pathlib import Path
@@ -19,36 +20,34 @@ TEST_IMAGES_PATH = DATA_PATH.joinpath('cil/test/images/')
 PREDICTION_PATH = OUT_PATH.joinpath('predictions/')
 
 
-def end2end(config_paths: List[Path], voter: str, resize_to: Tuple[int, int] = (400, 400), with_mae=True):
+def end2end(config_paths: List[Path], voter: str, experiment_name, resize_to: Tuple[int, int] = (400, 400), with_mae=True, cluster=False, mae_config_path=None):
     # If CIL dataset was used in the config, gets the image sizes from there
     # Then loads the model and runs it on test images, resized to the found size if possible
 
     assert (len(config_paths) == 6)
     submissions = []
-    model_config_paths = config_paths[:5]
-    for config_path in model_config_paths:
-        experiment_name = get_experiment_name_from_config(config_path)
+    for config_path in config_paths:
         submission_name = config_path.stem
 
-        experiment_name = 'None'  # Doesn't work if weights are moved
+        if not cluster:
+            model_path = get_model_path_from_config(config_path)
+            model, _ = load_checkpoint(model_path)
+            model.eval()
 
-        config = load_config(config_path)
-        if config['dataset']['name'] == 'cil':
-            real_resize_to = config['dataset']['params'].get('resize_to')
-            if real_resize_to is not None:
-                print(
-                    f"Found the size of the CIL images the model was trained on: {real_resize_to}")
-                if resize_to != real_resize_to:
-                    print(
-                        f"Using the found size {real_resize_to} instead of given {resize_to}")
-                    resize_to = real_resize_to
+            submissions.append(test_model_on_full_images_for_end2end(model0=model, resize_to=resize_to, cluster=cluster))
 
-        model_path = get_model_path_from_config(config_path)
-        model, _ = load_checkpoint(model_path)
-        model.eval()
+        else:
+            config0 = config_path[0]
+            config1 = config_path[1]
 
-        submissions.append(test_model_on_full_images_for_end2end(
-            model, experiment_name, submission_name, resize_to))
+            model0_path = get_model_path_from_config(config0)
+            model1_path = get_model_path_from_config(config1)
+            model0, _ = load_checkpoint(model0_path)
+            model1, _ = load_checkpoint(model1_path)
+            model0.eval()
+            model1.eval()
+
+            submissions.append(test_model_on_full_images_for_end2end(model0=model0, model1=model1, resize_to=resize_to, cluster=cluster))
 
     if voter == "hard_pixel":
         interim_predictions = hard_voting_pixel_level(submissions)
@@ -61,14 +60,38 @@ def end2end(config_paths: List[Path], voter: str, resize_to: Tuple[int, int] = (
     else:
         raise ValueError("Invalid voter type")
 
-    mae_config_path = config_paths[5]
-    experiment_name = get_experiment_name_from_config(mae_config_path)
-    submission_name = mae_config_path.stem
-    mae_model_path = get_model_path_from_config(mae_config_path)
-    model, _ = load_checkpoint(mae_model_path)
-    model.eval()
-    run_mae(interim_predictions, model, experiment_name, submission_name)
+    if with_mae:
+        experiment_name = get_experiment_name_from_config(mae_config_path)
+        submission_name = mae_config_path.stem
+        mae_model_path = get_model_path_from_config(mae_config_path)
+        model, _ = load_checkpoint(mae_model_path)
+        model.eval()
+        run_mae(interim_predictions, model, experiment_name, submission_name)
+    else:
+        experiment_prediction_path = PREDICTION_PATH.joinpath(experiment_name)
+        os.makedirs(experiment_prediction_path, exist_ok=True)
+        prediction_file_path = experiment_prediction_path.joinpath(
+            f"{submission_name}.csv")
+        prediction_file_path = make_sure_unique([prediction_file_path])[0]
+        # test_paths = TEST_IMAGES_PATH.glob('*.png')
+        test_paths = glob(str(TEST_IMAGES_PATH) + '/*.png')
 
+        pred = np_to_tensor(np.moveaxis(
+            interim_predictions, -1, 1), DEVICE)  # shape (144, 1, H, W)
+        original_size = pred.shape[1:3]
+        pred = np.moveaxis(pred, 1, -1)
+        # shape (144, 400, 400, 1), resize back to original shape
+        pred = np.stack([cv2.resize(img, dsize=original_size)
+                              for img in pred], 0)
+
+        pred = pred.reshape(
+            (-1, original_size[0] // PATCH_SIZE, PATCH_SIZE, original_size[0] // PATCH_SIZE, PATCH_SIZE))
+        pred = np.moveaxis(pred, 2, 3)  # shape (144, 25, 25, 16, 16)
+        pred = np.round(np.mean(pred, (-1, -2)) >
+                             CUTOFF)  # shape (144, 25, 25)
+
+        print(f"Creating submission file {prediction_file_path}")
+        create_submission(pred, test_paths, prediction_file_path, PATCH_SIZE)
 
 def run_mae(voter_op, model: nn.Module, experiment_name: str, submission_name: str):
 
@@ -77,12 +100,13 @@ def run_mae(voter_op, model: nn.Module, experiment_name: str, submission_name: s
     prediction_file_path = experiment_prediction_path.joinpath(
         f"{submission_name}.csv")
     prediction_file_path = make_sure_unique([prediction_file_path])[0]
-    original_size = test_images.shape[1:3]
     # test_paths = TEST_IMAGES_PATH.glob('*.png')
     test_paths = glob(str(TEST_IMAGES_PATH) + '/*.png')
 
     test_images = np_to_tensor(np.moveaxis(
         voter_op, -1, 1), DEVICE)  # shape (144, 1, H, W)
+    original_size = test_images.shape[1:3]
+
     print("Running the MAE model on test images..")
     test_pred = [model(t).detach().cpu().numpy()
                  for t in tqdm(test_images.unsqueeze(1))]
@@ -104,7 +128,7 @@ def run_mae(voter_op, model: nn.Module, experiment_name: str, submission_name: s
     create_submission(test_pred, test_paths, prediction_file_path, PATCH_SIZE)
 
 
-def test_model_on_full_images_for_end2end(model: nn.Module, experiment_name: str, submission_name: str, resize_to: Tuple[int, int] = (400, 400)):
+def test_model_on_full_images_for_end2end(model0: nn.Module, model1=None, resize_to: Tuple[int, int] = (400, 400), cluster=False):
     # Runs the model on test images (possibly resized to a required size),
     # resizes the model's output back to the original size,
     # then creates patches, calculates the cutoff, and creates a submission file
@@ -112,23 +136,37 @@ def test_model_on_full_images_for_end2end(model: nn.Module, experiment_name: str
     test_images = load_all_from_path(
         str(TEST_IMAGES_PATH))  # shape (144, 400, 400, 4)
 
-    original_size = test_images.shape[1:3]  # shape (400, 400)
+    # original_size = test_images.shape[1:3]  # shape (400, 400)
     # shape (144, H, W, 4), resize if needed for the model
-    test_images = np.stack([cv2.resize(img, dsize=resize_to)
-                           for img in test_images], 0)
+    # test_images = np.stack([cv2.resize(img, dsize=resize_to)
+    #                        for img in test_images], 0)
+    test_images = np.stack([img for img in test_images], 0)
     # shape (144, H, W, 3), leave only 3 channels
     test_images = test_images[:, :, :, :3]
     test_images = np_to_tensor(np.moveaxis(
         test_images, -1, 1), DEVICE)  # shape (144, 3, H, W)
 
     print("Running the model on test images..")
-    test_pred = [model(t).detach().cpu().numpy()
-                 for t in tqdm(test_images.unsqueeze(1))]
+
+    if not cluster:
+        test_pred = [model0(t).detach().cpu().numpy()
+                     for t in tqdm(test_images.unsqueeze(1))]
+    else:
+        cluster_dict = json.load(open(os.path.joinpath('CLIP_clusters.json')))
+        test_pred = []
+
+        for t in tqdm(test_images.unsqueeze(1)):
+            name = 'cil/training/images/' + t.filename
+            cluster_id = np_to_tensor(np.array([cluster_dict[name]]), 'cpu')
+            pred = model0(t) if cluster_id == 0 else model1(t)
+            test_pred.append(pred.detach().cpu().numpy())
+
     test_pred = np.concatenate(test_pred, 0)  # shape (144, 1, H, W)
     # shape (144, H, W, 1), CxHxW to HxWxC
     test_pred = np.moveaxis(test_pred, 1, -1)
     # shape (144, 400, 400, 1), resize back to original shape
-    test_pred = np.stack([cv2.resize(img, dsize=original_size)
-                         for img in test_pred], 0)
+    # test_pred = np.stack([cv2.resize(img, dsize=original_size)
+    #                      for img in test_pred], 0)
+    test_pred = np.stack([img for img in test_pred], 0)
 
     return test_pred
