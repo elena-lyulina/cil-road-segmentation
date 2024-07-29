@@ -97,10 +97,20 @@ def save_image_triplet(input_img, output_img, gt_img, epoch, batch_no, config):
         new_im.paste(gt_pil, (width * 2, 0))
 
         # Save the concatenated image
-        save_dir = EXPERIMENTS_PATH.joinpath(config["model"]["name"], "mae_images", config["dataset"]["name"], config["model"]["params"]["mode"], config["model"]["params"]["voter"])
+        save_dir = EXPERIMENTS_PATH
+        if "model" in config and "name" in config["model"]:
+            save_dir = save_dir.joinpath(config["model"]["name"])
+        save_dir = save_dir.joinpath("mae_images")
+        if "dataset" in config and "name" in config["dataset"]:
+            save_dir = save_dir.joinpath(config["dataset"]["name"])
+        if "params" in config["model"]:
+            if "mode" in config["model"]["params"]:
+                save_dir = save_dir.joinpath(config["model"]["params"]["mode"])
+            if "voter" in config["model"]["params"]:
+                save_dir = save_dir.joinpath(config["model"]["params"]["voter"])
         save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
 
         # Save the concatenated image
-        filename = save_dir / f"mae_in_out_epoch{epoch}_batch{batch_no}.png"
+        filename = save_dir / f"mae_in_out_epoch{epoch}_batch{batch_no}_image{i}.png"
         print("image saved to", filename)
         new_im.save(filename)
