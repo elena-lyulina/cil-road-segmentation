@@ -2,6 +2,11 @@ import torch
 from torch import nn
 from src.train.loss import *
 
+from PIL import Image
+import torchvision.transforms.functional as TF
+from pathlib import Path
+from src.constants import EXPERIMENTS_PATH
+
 ### TRAIN CONFIG UTIL ###
 
 DEFAULT_TRAIN_CONFIG = {
@@ -70,3 +75,27 @@ def get_loss(config: dict):
             )
     raise Exception(f'{config["train"]["loss"]} not implemented')
 
+
+def save_image_triplet(input_img, output_img, gt_img, epoch, config):
+    # Convert tensors to PIL images, ensuring they are in mode 'L' for grayscale
+    input_pil = TF.to_pil_image(input_img).convert('L')
+    output_pil = TF.to_pil_image(output_img).convert('L')
+    gt_pil = TF.to_pil_image(gt_img).convert('L')
+
+    # Concatenate images horizontally
+    width, height = input_pil.size
+    total_width = width * 3
+    new_im = Image.new('L', (total_width, height))  # Use 'L' for grayscale images
+
+    new_im.paste(input_pil, (0, 0))
+    new_im.paste(output_pil, (width, 0))
+    new_im.paste(gt_pil, (width * 2, 0))
+
+    # Save the concatenated image
+    save_dir = EXPERIMENTS_PATH.joinpath(config["model"]["name"], "mae_images", config["dataset"]["name"], config["model"]["params"]["mode"], config["model"]["params"]["voter"])
+    save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+
+    # Save the concatenated image
+    filename = save_dir / f"mae_in_out_comparison_epoch_{epoch}.png"
+    print("image saved to", filename)
+    new_im.save(filename)
