@@ -66,7 +66,7 @@ class RoadSegDataset(Dataset):
             x = self.color_transform(image=x)["image"]
 
         if "masked" in self.augment:
-            x = self.apply_masking(y)
+            x = self.apply_masking(y.copy())
 
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)

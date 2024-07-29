@@ -13,15 +13,16 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': 'all',
+        'name': 'both_clusters',
         'params': {
-            'batch_size': 16,
-            'num_workers': 4,
+            'batch_size': 2,
+            'num_workers': 1,
             'shuffle': True,
             'resize_to': (400, 400),
             'augment': 'masked',
             'masking_params': {
-                'num_zero_patches': 8,
+                'noise_threshold': 1.3,
+                'num_zero_patches': 10,
                 'zero_patch_size': 50,
                 'num_flip_patches': 25,
                 'flip_patch_size': 16
@@ -38,7 +39,7 @@ cur_config = {
         },
         'loss': 'DiceBCELoss',
         'clip_grad': None,
-        'n_gpus': 1
+        'n_gpus': 0
     }
 }
 
