@@ -76,7 +76,7 @@ def get_loss(config: dict):
     raise Exception(f'{config["train"]["loss"]} not implemented')
 
 
-def save_image_triplet(input_img, output_img, gt_img, epoch, config):
+def save_image_triplet(input_img, output_img, gt_img, epoch, batch_no, config):
     # Convert tensors to PIL images, ensuring they are in mode 'L' for grayscale
     input_pil = TF.to_pil_image(input_img).convert('L')
     output_pil = TF.to_pil_image(output_img).convert('L')
@@ -96,6 +96,6 @@ def save_image_triplet(input_img, output_img, gt_img, epoch, config):
     save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
 
     # Save the concatenated image
-    filename = save_dir / f"mae_in_out_comparison_epoch_{epoch}.png"
+    filename = save_dir / f"mae_in_out_epoch{epoch}_batch{batch_no}.png"
     print("image saved to", filename)
     new_im.save(filename)
