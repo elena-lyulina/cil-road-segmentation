@@ -9,16 +9,15 @@ from src.experiments.utils import get_run_name, get_save_path_and_experiment_nam
 cur_config = {
     "model": {
         "name": "dino_plus_unet",
-        'from_pretrained': '/ws/cil_checkpoints/dinoPlusUNet/all/major-sweep-5.json',
         "params": {},
     },
     "dataset": {
-        "name": "all",
-        "params": {"batch_size": 16, "num_workers": 4, "shuffle": True, "resize_to": (400, 400),
+        "name": "cil",
+        "params": {"batch_size": 4, "num_workers": 4, "shuffle": True, "resize_to": (400, 400),
                    "augment": ["geometric"]}
     },
     "train": {
-        "n_epochs": 10,
+        "n_epochs": 30,
         "optimizer": {"name": "Adam", "params": {"lr": 0.0002}},
         "loss": "BCELoss",
         "clip_grad": 1,
@@ -28,6 +27,6 @@ cur_config = {
 
 if __name__ == "__main__":
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
-    run_name = get_run_name(cur_config, "continue")
+    run_name = get_run_name(cur_config, "baseline")
 
     run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
