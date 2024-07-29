@@ -67,8 +67,8 @@ def train(
             if modelname == "end2end":
                 y_hat = model((x, cluster_id))
                 if DEBUG:
-                    y_hat, mae_input = y_hat
-                    save_image_triplet(mae_input, y_hat, y, epoch, config)
+                    y_hat, _ = y_hat
+                    # save_image_triplet(mae_input, y_hat, y, epoch, config)
             else:
                 y_hat = model(x)  # forward pass
             loss = loss_fn(y_hat, y)
@@ -101,8 +101,11 @@ def train(
                     raise ValueError("Unexpected batch size: expected 2 or 3 items, got {}".format(len(batch)))
 
                 x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-                if modelname == "end2end" and cluster_id is not None:
+                if modelname == "end2end":
                     y_hat = model((x, cluster_id))
+                    if DEBUG:
+                        y_hat, mae_input = y_hat
+                        save_image_triplet(mae_input, y_hat, y, epoch, config)
                 else:
                     y_hat = model(x)  # forward pass
                 val_loss = loss_fn(y_hat, y)
