@@ -97,4 +97,5 @@ def save_image_triplet(input_img, output_img, gt_img, epoch, config):
 
     # Save the concatenated image
     filename = save_dir / f"mae_in_out_comparison_epoch_{epoch}.png"
+    print("image saved to", filename)
     new_im.save(filename)
