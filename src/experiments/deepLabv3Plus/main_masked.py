@@ -39,7 +39,7 @@ cur_config = {
         },
         'loss': 'DiceBCELoss',
         'clip_grad': None,
-        'n_gpus': 0
+        'n_gpus': 1
     }
 }
 

@@ -19,7 +19,7 @@ TEST_IMAGES_PATH = DATA_PATH.joinpath('cil/test/images/')
 PREDICTION_PATH = OUT_PATH.joinpath('predictions/')
 
 
-def end2end(config_paths: List[Path], voter: str, resize_to: Tuple[int, int] = (400, 400)):
+def end2end(config_paths: List[Path], voter: str, resize_to: Tuple[int, int] = (400, 400), with_mae=True):
     # If CIL dataset was used in the config, gets the image sizes from there
     # Then loads the model and runs it on test images, resized to the found size if possible
 
