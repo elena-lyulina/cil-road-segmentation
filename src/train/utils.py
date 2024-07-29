@@ -92,7 +92,7 @@ def save_image_triplet(input_img, output_img, gt_img, epoch, config):
     new_im.paste(gt_pil, (width * 2, 0))
 
     # Save the concatenated image
-    save_dir = EXPERIMENTS_PATH.joinpath(config["model"]["name"], "mae_images", config["model"]["params"]["mode"], config["dataset"]["name"])
+    save_dir = EXPERIMENTS_PATH.joinpath(config["model"]["name"], "mae_images", config["dataset"]["name"], config["model"]["params"]["mode"], config["model"]["params"]["voter"])
     save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
 
     # Save the concatenated image
