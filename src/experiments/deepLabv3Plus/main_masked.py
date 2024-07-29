@@ -15,8 +15,8 @@ cur_config = {
     'dataset': {
         'name': 'both_clusters',
         'params': {
-            'batch_size': 2,
-            'num_workers': 1,
+            'batch_size': 16,
+            'num_workers': 4,
             'shuffle': True,
             'resize_to': (400, 400),
             'augment': 'masked',
