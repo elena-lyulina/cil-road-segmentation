@@ -24,18 +24,18 @@ cur_config ={
                 400,
                 400
             ],
-            "augment": "masked",
+            "augment": ["masked", "geometric"],
             "masking_params": {
-                "noise_threshold": 1.3,
+                "noise_threshold": 100,
                 "num_zero_patches": 10,
                 "zero_patch_size": 50,
-                "num_flip_patches": 25,
-                "flip_patch_size": 16
+                "num_flip_patches": 50,
+                "flip_patch_size": 20
             }
         }
     },
     "train": {
-        "n_epochs": 3,
+        "n_epochs": 1,
         "optimizer": {
             "name": "Adam",
             "params": {

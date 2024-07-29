@@ -76,12 +76,12 @@ def get_loss(config: dict):
     raise Exception(f'{config["train"]["loss"]} not implemented')
 
 
-def save_image_triplet(input_img, output_img, gt_img, epoch, batch_no, config):
+def save_image_triplet(input_batch, output_batch, gt_batch, epoch, batch_no, config):
     # Convert tensors to PIL images, ensuring they are in mode 'L' for grayscale
-    for i in range(len(input_img)):
-        input_img = input_img[i].detach().cpu()
-        output_img = output_img[i].detach().cpu()
-        gt_img = gt_img[i].detach().cpu()
+    for i in range(len(input_batch)):
+        input_img = input_batch[i].detach().cpu()
+        output_img = output_batch[i].detach().cpu()
+        gt_img = gt_batch[i].detach().cpu()
 
         input_pil = TF.to_pil_image(input_img).convert('L')
         output_pil = TF.to_pil_image(output_img).convert('L')
@@ -102,10 +102,10 @@ def save_image_triplet(input_img, output_img, gt_img, epoch, batch_no, config):
             save_dir = save_dir.joinpath(config["model"]["name"])
         save_dir = save_dir.joinpath("mae_images")
         if "dataset" in config and "name" in config["dataset"]:
-            save_dir = save_dir.joinpath(config["dataset"]["name"])
-        if "params" in config["model"]:
+            save_dir = save_dir.joinpath("dataset=" + config["dataset"]["name"])
+        if config["model"]["name"] == "end2end" and "params" in config["model"]:
             if "mode" in config["model"]["params"]:
-                save_dir = save_dir.joinpath(config["model"]["params"]["mode"])
+                save_dir = save_dir.joinpath("dataset=" + config["model"]["params"]["mode"])
             if "voter" in config["model"]["params"]:
                 save_dir = save_dir.joinpath(config["model"]["params"]["voter"])
         save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists

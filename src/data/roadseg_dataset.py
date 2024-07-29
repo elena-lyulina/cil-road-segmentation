@@ -36,12 +36,19 @@ class RoadSegDataset(Dataset):
         self.augment = augment
         self.masking_params = masking_params
 
-        self.geometric_transform = A.Compose(
+        self.geometric_transform = A.OneOf(
             [
-                A.RandomRotate90(),
-                A.VerticalFlip(),
-                A.HorizontalFlip(),
-            ]
+                A.Rotate(limit=0, always_apply=True),  # 0 degrees
+                A.Rotate(limit=90, always_apply=True),  # 90 degrees
+                A.Rotate(limit=180, always_apply=True),  # 180 degrees
+                A.Rotate(limit=270, always_apply=True),  # 270 degrees
+                A.HorizontalFlip(always_apply=True),  # Horizontal reflection
+                A.VerticalFlip(always_apply=True),  # Vertical reflection
+                A.Transpose(always_apply=True),  # Diagonal reflection across main diagonal
+                # Diagonal reflection across secondary diagonal (not directly supported, combine transpose and flip)
+                A.Compose([A.Transpose(always_apply=True), A.VerticalFlip(always_apply=True)])
+            ],
+            p=1,
         )
 
         self.color_transform = A.Compose(
@@ -87,7 +94,7 @@ class RoadSegDataset(Dataset):
         # Apply patch flipping
         for _ in range(num_flip_patches):
             i, j = random.randint(0, 400 - flip_patch_size), random.randint(0, 400 - flip_patch_size)
-            mask[i : i + flip_patch_size, j : j + flip_patch_size] = 1 - mask[i : i + flip_patch_size, j : j + flip_patch_size]
+            mask[i : i + flip_patch_size, j : j + flip_patch_size] = 0
         
         # Apply patch masking
         for _ in range(num_zero_patches):
@@ -104,6 +111,9 @@ class RoadSegDataset(Dataset):
         
             mask = mask + random_ones - random_zeros
             mask = np.clip(mask, 0, 1)
+
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
 
         return mask
 
