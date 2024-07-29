@@ -66,11 +66,11 @@ def train(
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
             if modelname == "end2end":
                 y_hat = model((x, cluster_id))
-                if DEBUG:
-                    y_hat, _ = y_hat
-                    # save_image_triplet(mae_input, y_hat, y, epoch, i, config)
             else:
                 y_hat = model(x)  # forward pass
+            if DEBUG and modelname in ["end2end", "deeplabv3plus"]:
+                y_hat, _ = y_hat
+                # save_image_triplet(mae_input, y_hat, y, epoch, i, config)
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
 
@@ -103,11 +103,11 @@ def train(
                 x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
                 if modelname == "end2end":
                     y_hat = model((x, cluster_id))
-                    if DEBUG:
-                        y_hat, mae_input = y_hat
-                        save_image_triplet(mae_input, y_hat, y, epoch, i, config)
                 else:
                     y_hat = model(x)  # forward pass
+                if DEBUG:
+                    y_hat, mae_input = y_hat
+                    save_image_triplet(mae_input, y_hat, y, epoch, i, config)
                 val_loss = loss_fn(y_hat, y)
 
                 # log partial metrics
