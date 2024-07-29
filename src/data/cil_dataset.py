@@ -135,7 +135,8 @@ class CILDataset(Dataset):
         self.augment = augment
         self.masking_params = masking_params
 
-        self.cluster_dict = json.load(open('M:\\Workspace\\cil-road-segmentation\\data\\cil\\CLIP_clusters.json'))
+        path = DATA_PATH.joinpath("cil")
+        self.cluster_dict = json.load(open(path.joinpath('CLIP_clusters.json')))
 
         self.geometric_transform = A.Compose(
             [
