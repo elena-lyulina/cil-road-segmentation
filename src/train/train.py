@@ -11,7 +11,7 @@ from tqdm import tqdm
 from src.constants import DEVICE
 from src.models.utils import get_model
 from src.train.metrics import get_metrics
-from src.train.utils import get_optimizer, get_loss
+from src.train.utils import get_optimizer, get_loss, save_image_triplet
 
 
 # todo:
@@ -34,8 +34,8 @@ def train(
     # reading config
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
-    dataset = config["dataset"]["name"]
     modelname = config["model"]["name"]
+    DEBUG = "debug" in config["model"]["params"]["mode"]
 
     loss_fn = get_loss(config)
 
@@ -64,8 +64,11 @@ def train(
 
             optimizer.zero_grad()  # zero out gradients
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-            if modelname == "end2end" and cluster_id is not None:
+            if modelname == "end2end":
                 y_hat = model((x, cluster_id))
+                if DEBUG:
+                    y_hat, mae_input = y_hat
+                    save_image_triplet(mae_input, y_hat, y, epoch, config)
             else:
                 y_hat = model(x)  # forward pass
             loss = loss_fn(y_hat, y)
