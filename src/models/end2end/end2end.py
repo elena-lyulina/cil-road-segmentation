@@ -25,9 +25,13 @@ class End2End(nn.Module):
     def forward(self, x):
         ensemble_predictions = self.ensemble_forward(x)
 
-        if self.mode == 'voter-then-mae':
+        voter_result = None
+
+        if 'voter-then-mae' in self.mode:
             voter_result = self.vote(ensemble_predictions).unsqueeze(1)
             y_hat = self.mae(voter_result)
+            if 'debug' in self.mode:
+                y_hat = y_hat, voter_result
         
         elif self.mode == 'mae-then-voter':
             mae_all_predictions = [self.mae(prediction) for prediction in ensemble_predictions]
@@ -37,7 +41,7 @@ class End2End(nn.Module):
             y_hat =  self.vote(ensemble_predictions).unsqueeze(1)
         
         else:
-            raise ValueError("Invalid mode. Choose 'voter-then-mae', 'mae-then-voter' or 'no-mae'.")
+            raise ValueError("Invalid mode. Choose 'voter-then-mae', 'mae-then-voter', 'no-mae', 'voter-then-mae-debug'.")
         
         return y_hat
 
