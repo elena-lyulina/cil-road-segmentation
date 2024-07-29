@@ -23,6 +23,25 @@ class End2End(nn.Module):
         self.mode = mode
     
     def forward(self, x):
+        ensemble_predictions = self.ensemble_forward(x)
+
+        if self.mode == 'voter-then-mae':
+            voter_result = self.vote(ensemble_predictions).unsqueeze(1)
+            y_hat = self.mae(voter_result)
+        
+        elif self.mode == 'mae-then-voter':
+            mae_all_predictions = [self.mae(prediction) for prediction in ensemble_predictions]
+            y_hat = self.vote(mae_all_predictions)
+
+        elif self.mode == 'no-mae':
+            y_hat =  self.vote(ensemble_predictions).unsqueeze(1)
+        
+        else:
+            raise ValueError("Invalid mode. Choose 'voter-then-mae', 'mae-then-voter' or 'no-mae'.")
+        
+        return y_hat
+
+    def ensemble_forward(self, x):
         if isinstance(x, tuple):
             x, cluster_ids = x
             cluster_ids = cluster_ids.squeeze().tolist()
@@ -30,11 +49,11 @@ class End2End(nn.Module):
             raise ValueError("Expected a tuple (x, cluster_ids). Talk to Diego")
 
         x_list = list(torch.unbind(x, dim=0))
-        predictions = []
+        ensemble_all_predictions = []
 
         for model0, model1 in zip(self.sota_models_cluster0, self.sota_models_cluster1):
             #model0 and model1 are the same architecture
-            predictions_i = []
+            current_image_predictions = []
             for image, cluster_id in zip(x_list, cluster_ids):
                 image = torch.stack((image, image), dim=0)
                 if cluster_id == 0:
@@ -44,40 +63,10 @@ class End2End(nn.Module):
                 else:
                     raise ValueError("Invalid cluster id")
                 pred = pred[0]
-                predictions_i.append(pred)
-            predictions.append(torch.stack(predictions_i))
-        
-        # predictions = [None] * x.size(0)
-        # self.process_cluster(x, cluster_ids, predictions, 0, self.sota_models_cluster0)
-        # self.process_cluster(x, cluster_ids, predictions, 1, self.sota_models_cluster1)
-        # if None in predictions:
-        #     raise ValueError("Some elements were not processed correctly")
-
-        if self.mode == 'voter-then-mae':
-
-            predictions = self.vote(predictions)
-            predictions = predictions.unsqueeze(1)
-            return self.mae(predictions)
-        
-        elif self.mode == 'mae-then-voter':
-            predictions = [self.mae(prediction) for prediction in predictions]
-            return self.vote(predictions)
-
-        elif self.mode == 'no-mae':
-            return self.vote(predictions).unsqueeze(1)
-        
-        else:
-            raise ValueError("Invalid mode. Choose 'voter-then-mae' or 'mae-then-voter'.")
+                current_image_predictions.append(pred)
+            ensemble_all_predictions.append(torch.stack(current_image_predictions))
+        return ensemble_all_predictions
             
-            
-    # def process_cluster(self, x, cluster_ids, predictions, cluster_id, models):
-    #     mask = (cluster_ids.squeeze() == cluster_id)
-    #     if mask.any():
-    #         x_cluster = x[mask]
-    #         predictions_cluster = [model(x_cluster) for model in models]
-    #         indices = mask.nonzero(as_tuple=False).squeeze().tolist()
-    #         for idx, pred in zip(indices, predictions_cluster):
-    #             predictions[idx] = pred
 
     def vote(self, predictions):
         def reshape_prediction(prediction):
