@@ -5,12 +5,15 @@ import os
 
 __all__ = ['HRNet', 'hrnetv2_48', 'hrnetv2_32']
 
+from src.constants import DEVICE
+
 # Checkpoint path of pre-trained backbone (edit to your path). Download backbone pretrained model hrnetv2-32 @
 # https://drive.google.com/file/d/1NxCK7Zgn5PmeS7W1jYLt5J9E0RRZ2oyF/view?usp=sharing .Personally, I added the backbone
 # weights to the folder /checkpoints
 
 model_urls = {
-    'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
+    # 'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
+    'hrnetv2_32': 'M:\Workspace\cil-road-segmentation\src\models\DeepLabv3Plus\checkpoints\model_best_epoch96_edit.pth',
     'hrnetv2_48': None
 }
 
@@ -301,7 +304,7 @@ def _hrnet(arch, channels, num_blocks, pretrained, progress, **kwargs):
     model = HRNet(channels, num_blocks, **kwargs)
     if pretrained:
         CKPT_PATH = check_pth(arch)
-        checkpoint = torch.load(CKPT_PATH)
+        checkpoint = torch.load(CKPT_PATH, map_location=DEVICE)
         model.load_state_dict(checkpoint['state_dict'])
     return model
 
