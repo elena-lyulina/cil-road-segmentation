@@ -35,7 +35,7 @@ def train(
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
     modelname = config["model"]["name"]
-    DEBUG = "debug" in config["model"]["params"]["mode"]
+    DEBUG = "debug" in config["model"]["params"].get("mode", None)
 
     loss_fn = get_loss(config)
 
@@ -53,7 +53,7 @@ def train(
         # training
         model.train()
 
-        for batch in pbar:
+        for i, batch in enumerate(pbar):
             if len(batch) == 2:
                 x, y = batch
                 cluster_id = None  # or some default value if needed
@@ -68,7 +68,7 @@ def train(
                 y_hat = model((x, cluster_id))
                 if DEBUG:
                     y_hat, _ = y_hat
-                    # save_image_triplet(mae_input, y_hat, y, epoch, config)
+                    # save_image_triplet(mae_input, y_hat, y, epoch, i, config)
             else:
                 y_hat = model(x)  # forward pass
             loss = loss_fn(y_hat, y)
@@ -90,7 +90,7 @@ def train(
         model.eval()
         val_pbar = tqdm(val_dataloader, desc=f'Validation:')
         with torch.no_grad():  # do not keep track of gradients
-            for batch in val_pbar:
+            for i, batch in enumerate(val_pbar):
 
                 if len(batch) == 2:
                     x, y = batch
@@ -105,7 +105,7 @@ def train(
                     y_hat = model((x, cluster_id))
                     if DEBUG:
                         y_hat, mae_input = y_hat
-                        save_image_triplet(mae_input, y_hat, y, epoch, config)
+                        save_image_triplet(mae_input, y_hat, y, epoch, i, config)
                 else:
                     y_hat = model(x)  # forward pass
                 val_loss = loss_fn(y_hat, y)
