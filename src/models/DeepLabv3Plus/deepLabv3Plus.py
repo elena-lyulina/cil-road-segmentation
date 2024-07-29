@@ -26,7 +26,12 @@ class DeepLabv3Plus(nn.Module):
         set_bn_momentum(self.backbone, momentum=0.01)
     
     def forward(self, x):
+        mae_input = None
         if x.shape[1] == 1:
             x = x.repeat(1, 3, 1, 1)
+            mae_input = x.clone().detach()
+
         out = self.model(x)
-        return torch.sigmoid(out[:, 0, :, :].unsqueeze(1))
+        out = torch.sigmoid(out[:, 0, :, :].unsqueeze(1))
+
+        return out if mae_input is None else (out, mae_input)
