@@ -10,7 +10,8 @@ __all__ = ['HRNet', 'hrnetv2_48', 'hrnetv2_32']
 # weights to the folder /checkpoints
 
 model_urls = {
-    'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
+    # 'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
+    'hrnetv2_32': 'weights/hrnet/model_best_epoch96_edit.pth',
     'hrnetv2_48': None
 }
 
@@ -301,7 +302,10 @@ def _hrnet(arch, channels, num_blocks, pretrained, progress, **kwargs):
     model = HRNet(channels, num_blocks, **kwargs)
     if pretrained:
         CKPT_PATH = check_pth(arch)
-        checkpoint = torch.load(CKPT_PATH)
+        checkpoint = torch.load(
+            CKPT_PATH,
+            map_location='cpu', # comment this line if you want to load the model on GPU
+            )
         model.load_state_dict(checkpoint['state_dict'])
     return model
 
