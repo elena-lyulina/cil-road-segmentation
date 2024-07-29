@@ -68,8 +68,8 @@ class RoadSegDataset(Dataset):
         if "masked" in self.augment:
             x = self.apply_masking(y.copy())
 
-        cv2.imwrite('x.png', x)
-        cv2.imwrite('y.png', y)
+        # cv2.imwrite('x.png', x)
+        # cv2.imwrite('y.png', y)
 
         # cv2.imshow('x', x)
         # cv2.imshow('y', y)
