@@ -28,12 +28,26 @@ class AllDataHandler(DataHandler):
 
 
 
-    def __init__(self, batch_size=4, num_workers=4, shuffle=True, resize_to=(400, 400), augment=None):
+    def __init__(
+        self,
+        batch_size=4,
+        num_workers=4,
+        shuffle=True,
+        resize_to=(400, 400),
+        augment=None,
+        masking_params = {
+            "num_zero_patches": 8,
+            "zero_patch_size": 50,
+            "num_flip_patches": 25,
+            "flip_patch_size": 16,
+        }
+    ):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle = shuffle
         self.resize_to = resize_to
-        self.augment = augment
+        self.augment = augment if augment else []
+        self.masking_params = masking_params
 
         images_paths_cluster0 = [f for f in sorted(glob(str(self.images_path_cluster0) + "/*.png"))]
         masks_paths_cluster0= [f for f in sorted(glob(str(self.masks_path_cluster0) + "/*.png"))]
@@ -60,41 +74,41 @@ class AllDataHandler(DataHandler):
         train_dataset_cluster0 = Cluster0Dataset(
             self.train_image_paths_cluster0,
             self.train_mask_paths_cluster0,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params,
         )
 
         val_dataset_cluster0 = Cluster0Dataset(
             self.val_image_paths_cluster0,
             self.val_mask_paths_cluster0,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params,
         )
 
         train_dataset_cluster1 = Cluster1Dataset(
             self.train_image_paths_cluster1,
             self.train_mask_paths_cluster1,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=self.augment,
+            masking_params=self.masking_params,
         )
 
         val_dataset_cluster1 = Cluster1Dataset(
             self.val_image_paths_cluster1,
             self.val_mask_paths_cluster1,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
             augment=["masked"] if "masked" in self.augment else None,
+            masking_params=self.masking_params,
         )
 
 
