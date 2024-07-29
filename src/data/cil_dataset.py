@@ -1,4 +1,6 @@
+import json
 from glob import glob
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -133,6 +135,8 @@ class CILDataset(Dataset):
         self.augment = augment
         self.masking_params = masking_params
 
+        self.cluster_dict = json.load(open('M:\\Workspace\\cil-road-segmentation\\data\\cil\\CLIP_clusters.json'))
+
         self.geometric_transform = A.Compose(
             [
                 A.RandomRotate90(),
@@ -165,9 +169,9 @@ class CILDataset(Dataset):
         if "masked" in self.augment:
             x = self.apply_masking(y.copy())
 
-        cv2.imshow('x', x)
-        cv2.imshow('y', y)
-        cv2.waitKey(0)
+        # cv2.imshow('x', x)
+        # cv2.imshow('y', y)
+        # cv2.waitKey(0)
         return x, y
 
     def apply_masking(self, mask):
@@ -211,7 +215,10 @@ class CILDataset(Dataset):
         image_tensor = np_to_tensor(image, 'cpu')
         mask_tensor = np_to_tensor(mask, 'cpu')
 
-        return image_tensor, mask_tensor
+        name = 'cil/training/images/' + Path(img_path).name
+        cluster_id = np_to_tensor(np.array([self.cluster_dict[name]]), 'cpu')
+
+        return image_tensor, mask_tensor, cluster_id
 
     def __len__(self):
         return len(self.items)
