@@ -7,13 +7,21 @@ class SegModel(pl.LightningModule):
 
     def __init__(self, arch, encoder_name, padding_mode='edge', classes=2, decoder_use_batchnorm=True, decoder_attention_type=None, activation=None, aux_params=None, **kwargs):
         super().__init__()
-        if arch == 'PSPNet':
+        if arch == 'PSPNet' or arch == 'FPN':
             self.model = smp.create_model(
                 arch,
                 encoder_name=encoder_name,
                 classes=classes,
-                # decoder_use_batchnorm=decoder_use_batchnorm,
-                # decoder_attention_type = decoder_attention_type,
+                activation=activation,
+                aux_params=aux_params,
+                **kwargs
+            )
+        elif arch == 'MAnet' or arch == 'Linknet':
+            self.model = smp.create_model(
+                arch,
+                encoder_name=encoder_name,
+                classes=classes,
+                decoder_use_batchnorm=decoder_use_batchnorm,
                 activation=activation,
                 aux_params=aux_params,
                 **kwargs
