@@ -52,7 +52,6 @@ class DeepGlobeDataHandler(DataHandler):
         train_dataset = DeepGlobeDataset(
             self.train_image_paths,
             self.train_mask_paths,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
@@ -62,7 +61,6 @@ class DeepGlobeDataHandler(DataHandler):
         val_dataset = DeepGlobeDataset(
             self.val_image_paths,
             self.val_mask_paths,
-            PATCH_SIZE,
             CUTOFF,
             DEVICE,
             resize_to=self.resize_to,
