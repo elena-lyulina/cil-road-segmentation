@@ -1,5 +1,6 @@
 from glob import glob
 from typing import Tuple
+import os
 
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
@@ -55,24 +56,41 @@ class AllDataHandler(DataHandler):
         images_paths_cluster1 = [f for f in sorted(glob(str(self.images_path_cluster1) + "/*.png"))]
         masks_paths_cluster1 = [f for f in sorted(glob(str(self.masks_path_cluster1) + "/*.png"))]
 
-        (
-            self.train_image_paths_cluster0,
-            self.val_image_paths_cluster0,
-            self.train_mask_paths_cluster0,
-            self.val_mask_paths_cluster0,
-        ) = train_test_split(images_paths_cluster0, masks_paths_cluster0, test_size=0.2, random_state=42)
+        if os.path.isdir(self.images_path_cluster0):
+            (
+                self.train_image_paths_cluster0,
+                self.val_image_paths_cluster0,
+                self.train_mask_paths_cluster0,
+                self.val_mask_paths_cluster0,
+            ) = train_test_split(images_paths_cluster0, masks_paths_cluster0, test_size=0.2, random_state=42)
 
-        (
-            self.train_image_paths_cluster1,
-            self.val_image_paths_cluster1,
-            self.train_mask_paths_cluster1,
-            self.val_mask_paths_cluster1,
-        ) = train_test_split(images_paths_cluster1, masks_paths_cluster1, test_size=0.2, random_state=42)
+            (
+                self.train_image_paths_cluster1,
+                self.val_image_paths_cluster1,
+                self.train_mask_paths_cluster1,
+                self.val_mask_paths_cluster1,
+            ) = train_test_split(images_paths_cluster1, masks_paths_cluster1, test_size=0.2, random_state=42)
+
+        else:
+            print("GT images not available. Masked training on GT masks only")
+            (
+                self.train_mask_paths_cluster0,
+                self.val_mask_paths_cluster0,
+            ) = train_test_split(masks_paths_cluster0, test_size=0.2, random_state=42)
+
+            (
+                self.train_mask_paths_cluster1,
+                self.val_mask_paths_cluster1,
+            ) = train_test_split(masks_paths_cluster1, test_size=0.2, random_state=42)
+
+
 
 
     def get_train_val_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
+        images_available = os.path.isdir(self.images_path_cluster0)
+
         train_dataset_cluster0 = Cluster0Dataset(
-            self.train_image_paths_cluster0,
+            self.train_image_paths_cluster0 if images_available else self.train_mask_paths_cluster0,
             self.train_mask_paths_cluster0,
             CUTOFF,
             DEVICE,
@@ -82,7 +100,7 @@ class AllDataHandler(DataHandler):
         )
 
         val_dataset_cluster0 = Cluster0Dataset(
-            self.val_image_paths_cluster0,
+            self.val_image_paths_cluster0 if images_available else self.val_mask_paths_cluster0,
             self.val_mask_paths_cluster0,
             CUTOFF,
             DEVICE,
@@ -92,7 +110,7 @@ class AllDataHandler(DataHandler):
         )
 
         train_dataset_cluster1 = Cluster1Dataset(
-            self.train_image_paths_cluster1,
+            self.train_image_paths_cluster1 if images_available else self.train_mask_paths_cluster1,
             self.train_mask_paths_cluster1,
             CUTOFF,
             DEVICE,
@@ -102,7 +120,7 @@ class AllDataHandler(DataHandler):
         )
 
         val_dataset_cluster1 = Cluster1Dataset(
-            self.val_image_paths_cluster1,
+            self.val_image_paths_cluster1 if images_available else self.val_mask_paths_cluster1,
             self.val_mask_paths_cluster1,
             CUTOFF,
             DEVICE,
