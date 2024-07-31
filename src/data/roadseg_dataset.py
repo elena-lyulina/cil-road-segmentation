@@ -129,7 +129,7 @@ def add_random_black_blobs(img, seed=31, blur_sigma=7, threshold=179, kernel_siz
     height, width = img.shape
 
     # Set the random seed and create noise
-    rng = default_rng(seed=seed)
+    rng = default_rng()
     noise = rng.integers(0, 255, (height, width), np.uint8, True)
 
     # Apply Gaussian blur to the noise
@@ -177,7 +177,7 @@ def uniformly_erode_and_smooth_blobs(image, num_blobs=10, max_blob_size=50, eros
     _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
 
     height, width = binary_image.shape
-    rng = default_rng(seed=seed)
+    rng = default_rng()
 
     # Define the erosion and dilation kernels as circular
     erosion_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (erosion_size, erosion_size))
