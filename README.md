@@ -1,7 +1,7 @@
 # ETHZ Spring 2024 CIL Road Segmentation Project
 
-### Deadline:
-✨July 31st 23:59✨
+This repository contains the implementation of a road segmentation data-specific pipeline, developed as part of a Kaggle competition by team KidNamedFinger.
+
 
 ### Environment Setup
 To replicate our experiments, follow these steps to create and activate a virtual environment:
@@ -24,6 +24,17 @@ pip install -r requirements.txt
 ```
 
 Note: We run our experiments on Python version 3.11.5. We recommend users use the correct Python executable to initiate the virtual environment.
+
+### Dataset
+We assembled a large dataset of satelite images based on thorough analysis of given samples to ensure high-quality, relevant training data, split into clusters.
+All data used in this study can be downloaded here. 
+
+### Trained models
+We experiemnted with many different SOTA models and various architectures to predict road masks and restore roads connectivity.
+All trained models can be downloaded [here](https://polybox.ethz.ch/index.php/s/dhxJ28YdsefrJcl).
+
+### Results reproduction
+To reproduce the results, you can run ```src/submission/evaluate.py``` on dowloaded models and data. 
 
 ### Directory Structure
 ```
@@ -227,8 +238,3 @@ Use the created sweep id for the next step.
 **Step 3.** Now, you can run an agent for the created sweep by passing the received sweep id into `src.experiments.sweep_config.run_sweep_agent`,
 specifying the number of runs to try. 
 
-
-### Links: 
-1. [Video recording](https://video.ethz.ch/lectures/d-infk/2024/spring/263-0008-00L/fe8cb982-d061-4350-8c3e-26b0cdb43119.html) of the preparatory session about this project
-2. [Kaggle link](https://www.kaggle.com/t/0fe22c50cf504e64b2decda075f71c87)
-3. [Massachusetts Road Dataset download](https://www.kaggle.com/datasets/balraj98/massachusetts-roads-dataset/data?select=tiff)
