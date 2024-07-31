@@ -237,10 +237,10 @@ def blobs_and_erode(img):
 
 
 # Example usage
-img = cv2.imread('data/cil/training/groundtruth/satimage_10.png', cv2.IMREAD_GRAYSCALE)
-output_image = blobs_and_erode(img)
+# img = cv2.imread('data/cil/training/groundtruth/satimage_10.png', cv2.IMREAD_GRAYSCALE)
+# output_image = blobs_and_erode(img)
 
-# Show the image
-cv2.imshow('noise + erode', output_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# # Show the image
+# cv2.imshow('noise + erode', output_image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
