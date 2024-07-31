@@ -6,16 +6,17 @@ cur_config = {
     'model': {
         'name': 'deeplabv3plus',
         'params': {
-            'backbone': 'resnet101',
+            'backbone': 'hrnetv2_32',
             'output_stride': 4,
             'pretrained_backbone': True,
             'separable_conv': True
         },
+        "from_pretrained": '/ws/cil_checkpoints/deepLab/hrnet/all/deeplabv3plus_all_acc0-96_date28-07-2024_08-32-21_8.json'
     },
     'dataset': {
-        'name': 'cil',
+        'name': 'DeepGlobe',
         'params': {
-            'batch_size': 4,
+            'batch_size': 16,
             'num_workers': 4,
             'shuffle': True,
             'resize_to': (400, 400),
@@ -23,14 +24,14 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 30,
+        'n_epochs': 5,
         'optimizer': {
             'name': 'Adam',
             'params': {
                 'lr': 0.0005
             }
         },
-        'loss': 'DiceBCELoss',
+        'loss': 'lcDiceBCELoss',
         'clip_grad': None,
         'n_gpus': 1
     }
