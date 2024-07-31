@@ -5,6 +5,9 @@ from torch.utils.data import Dataset
 import albumentations as A
 import random
 
+from skimage import exposure
+from numpy.random import default_rng
+
 from src.data.utils import np_to_tensor
 
 
@@ -85,37 +88,8 @@ class RoadSegDataset(Dataset):
 
     def apply_masking(self, mask):
         #read masking params into local variables, check if they are present in masking_params
-        num_zero_patches = self.masking_params.get("num_zero_patches", 8)
-        zero_patch_size = self.masking_params.get("zero_patch_size", 50)
-        num_flip_patches = self.masking_params.get("num_flip_patches", 25)
-        flip_patch_size = self.masking_params.get("flip_patch_size", 16)
-        noise_threshold = self.masking_params.get("noise_threshold", 0.5)
+        return blobs_and_erode(mask)
 
-        # Apply patch flipping
-        for _ in range(num_flip_patches):
-            i, j = random.randint(0, 400 - flip_patch_size), random.randint(0, 400 - flip_patch_size)
-            mask[i : i + flip_patch_size, j : j + flip_patch_size] = 0
-        
-        # Apply patch masking
-        for _ in range(num_zero_patches):
-            i, j = random.randint(0, 400 - zero_patch_size), random.randint(0, 400 - zero_patch_size)
-            mask[i : i + zero_patch_size, j : j + zero_patch_size] = 0
-
-        # Apply Gaussian noise and binarize it
-        if noise_threshold < 100:
-            noise = np.random.normal(0, 1, mask.shape)
-            random_ones = (noise > noise_threshold).astype(np.float32)
-
-            noise = np.random.normal(0, 1, mask.shape)
-            random_zeros = (noise > noise_threshold).astype(np.float32)
-        
-            mask = mask + random_ones - random_zeros
-            mask = np.clip(mask, 0, 1)
-
-        kernel = np.ones((3, 3), np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=1)
-
-        return mask
 
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
@@ -146,3 +120,127 @@ class RoadSegDataset(Dataset):
 
     def __len__(self):
         return len(self.items)
+    
+
+def add_random_black_blobs(img, seed=31, blur_sigma=7, threshold=179, kernel_size=(9, 9)):
+    import skimage.exposure
+
+    # Load the image in grayscale
+    height, width = img.shape
+
+    # Set the random seed and create noise
+    rng = default_rng(seed=seed)
+    noise = rng.integers(0, 255, (height, width), np.uint8, True)
+
+    # Apply Gaussian blur to the noise
+    blur = cv2.GaussianBlur(noise, (0, 0), sigmaX=blur_sigma, sigmaY=blur_sigma, borderType=cv2.BORDER_DEFAULT)
+
+    # Stretch the histogram to full range
+    stretch = skimage.exposure.rescale_intensity(blur, in_range='image', out_range=(0, 255)).astype(np.uint8)
+
+    # Apply a threshold to create binary blobs
+    thresh = cv2.threshold(stretch, threshold, 255, cv2.THRESH_BINARY)[1]
+
+    # Morphological operations to clean up the blobs
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, kernel_size)
+    mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+    # Since it's a black and white image, invert the mask to get black blobs
+    black_blobs = 255 - mask
+
+    # Combine the blobs with the original image
+    result = cv2.bitwise_and(img, black_blobs)
+
+    return result
+
+
+def uniformly_erode_and_smooth_blobs(image, num_blobs=10, max_blob_size=50, erosion_size=5, dilation_size=5, seed=None):
+    """
+    Uniformly erodes and then smooths white regions in a black and white mask in blob-shaped patches.
+
+    Parameters:
+    image (numpy array): The input black and white mask.
+    num_blobs (int): Number of random blobs to erode and smooth uniformly.
+    max_blob_size (int): Maximum size of the blob in pixels.
+    erosion_size (int): The size of the erosion kernel.
+    dilation_size (int): The size of the dilation kernel to smooth edges.
+    seed (int, optional): Seed for the random number generator for reproducibility.
+
+    Returns:
+    numpy array: The uniformly eroded and smoothed mask.
+    """
+    # Add border to avoid edge artifacts
+    image = cv2.copyMakeBorder(image, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[0,0,0])
+
+    # Ensure the image is in binary format
+    _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+
+    height, width = binary_image.shape
+    rng = default_rng(seed=seed)
+
+    # Define the erosion and dilation kernels as circular
+    erosion_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (erosion_size, erosion_size))
+    dilation_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
+
+    # Create a temporary image for sequential processing
+    temp_image = binary_image.copy()
+
+    for _ in range(num_blobs):
+        # Randomly choose the center of the blob
+        x_center = rng.integers(0, width)
+        y_center = rng.integers(0, height)
+        blob_width = rng.integers(10, max_blob_size)
+        blob_height = rng.integers(10, max_blob_size)
+
+        # Create an elliptical/oval blob within a temporary mask
+        temp_mask = np.zeros_like(binary_image)
+        cv2.ellipse(temp_mask, (x_center, y_center), (blob_width // 2, blob_height // 2), 
+                    angle=0, startAngle=0, endAngle=360, color=(255,), thickness=-1)
+
+        # Apply erosion only to the region defined by the blob mask
+        eroded_area = cv2.erode(temp_image, erosion_kernel, iterations=1)
+        temp_image = np.where(temp_mask == 255, eroded_area, temp_image)
+
+    # After all blobs have been eroded, apply dilation to smooth the entire image
+    smoothed_image = cv2.dilate(temp_image, dilation_kernel, iterations=1)
+
+    # Remove the added border
+    smoothed_image = smoothed_image[10:-10, 10:-10]
+
+    return smoothed_image
+
+def noise(mask, noise_threshold=0.5):
+    if noise_threshold < 100:
+        noise = np.random.normal(0, 1, mask.shape)
+        random_ones = (noise > noise_threshold).astype(np.float32)
+
+        noise = np.random.normal(0, 1, mask.shape)
+        random_zeros = (noise > noise_threshold).astype(np.float32)
+    
+        mask = mask + random_ones - random_zeros
+        mask = np.clip(mask, 0, 1)
+
+    kernel = np.ones((3, 3), np.uint8)
+    mask = cv2.erode(mask, kernel, iterations=1)
+
+    return mask
+
+
+def blobs_and_erode(img):
+    img = add_random_black_blobs(img)
+    img = uniformly_erode_and_smooth_blobs(img, num_blobs=2000, max_blob_size=50, erosion_size=2, dilation_size=5, seed=43)
+    img = noise(img)
+
+    return img
+
+
+
+# Example usage
+img = cv2.imread('data/cil/training/groundtruth/satimage_10.png', cv2.IMREAD_GRAYSCALE)
+output_image = blobs_and_erode(img)
+
+# Show the image
+cv2.imshow('noise + erode', output_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
