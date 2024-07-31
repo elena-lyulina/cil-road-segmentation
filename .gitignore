@@ -6,5 +6,6 @@ cil-rs/
 src/experiments/*/results/
 src/experiments/vansh
 weights/
+**/mae_images/
 
 .vscode/launch.json

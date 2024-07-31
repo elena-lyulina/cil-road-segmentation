@@ -44,7 +44,7 @@ class DecoderBlock(nn.Module):
         return x
 
 
-@MODEL_REGISTRY.register('linkNet')
+@MODEL_REGISTRY.register('linkNet_archive')
 class LinkNet34(nn.Module):
     def __init__(self, num_classes=1):
         super(LinkNet34, self).__init__()

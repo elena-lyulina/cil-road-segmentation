@@ -13,7 +13,7 @@ from src.constants import DEVICE
 
 model_urls = {
     # 'hrnetv2_32': '/ws/cil-road-segmentation/src/models/DeepLabv3Plus/checkpoints/model_best_epoch96_edit.pth',
-    'hrnetv2_32': 'M:\Workspace\cil-road-segmentation\src\models\DeepLabv3Plus\checkpoints\model_best_epoch96_edit.pth',
+    'hrnetv2_32': 'weights/hrnet/model_best_epoch96_edit.pth',
     'hrnetv2_48': None
 }
 

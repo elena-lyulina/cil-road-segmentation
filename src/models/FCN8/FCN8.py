@@ -108,8 +108,9 @@ class FCN8s(nn.Module):
             mode="bilinear",
             align_corners=True,
         )
-        min_val, max_val = (torch.min(out), torch.max(out))
-        out = (out - min_val) / (max_val - min_val)
+        out = F.sigmoid(out)
+        # min_val, max_val = (torch.min(out), torch.max(out))
+        # out = (out - min_val) / (max_val - min_val)
 
         # out = upscore8[:, 31 : 31 + , 31 : 31 + x.size()[3]]
         # print(out.shape)

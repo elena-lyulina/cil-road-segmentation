@@ -28,6 +28,15 @@ def test_on_full_images(config_path: Path, resize_to: Tuple[int, int] = (400, 40
     experiment_name = 'None' # Doesn't work if weights are moved
 
     config = load_config(config_path)
+    resize_to = get_cil_resize_param(config, resize_to)
+    model_path = get_model_path_from_config(config_path)
+    model, _ = load_checkpoint(model_path)
+    model.eval()
+
+    test_model_on_full_images(model, experiment_name, submission_name, resize_to)
+
+
+def get_cil_resize_param(config, resize_to):
     if config['dataset']['name'] == 'cil':
         real_resize_to = config['dataset']['params'].get('resize_to')
         if real_resize_to is not None:
@@ -35,12 +44,7 @@ def test_on_full_images(config_path: Path, resize_to: Tuple[int, int] = (400, 40
             if resize_to != real_resize_to:
                 print(f"Using the found size {real_resize_to} instead of given {resize_to}")
                 resize_to = real_resize_to
-
-    model_path = get_model_path_from_config(config_path)
-    model, _ = load_checkpoint(model_path)
-    model.eval()
-
-    test_model_on_full_images(model, experiment_name, submission_name, resize_to)
+    return resize_to
 
 
 def test_model_on_full_images(model: nn.Module, experiment_name: str, submission_name: str, resize_to: Tuple[int, int] = (400, 400)):

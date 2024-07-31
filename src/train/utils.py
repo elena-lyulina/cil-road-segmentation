@@ -76,25 +76,41 @@ def get_loss(config: dict):
     raise Exception(f'{config["train"]["loss"]} not implemented')
 
 
-def save_image_triplet(input_img, output_img, gt_img, epoch, config):
+def save_image_triplet(input_batch, output_batch, gt_batch, epoch, batch_no, config):
     # Convert tensors to PIL images, ensuring they are in mode 'L' for grayscale
-    input_pil = TF.to_pil_image(input_img).convert('L')
-    output_pil = TF.to_pil_image(output_img).convert('L')
-    gt_pil = TF.to_pil_image(gt_img).convert('L')
+    for i in range(len(input_batch)):
+        input_img = input_batch[i].detach().cpu()
+        output_img = output_batch[i].detach().cpu()
+        gt_img = gt_batch[i].detach().cpu()
 
-    # Concatenate images horizontally
-    width, height = input_pil.size
-    total_width = width * 3
-    new_im = Image.new('L', (total_width, height))  # Use 'L' for grayscale images
+        input_pil = TF.to_pil_image(input_img).convert('L')
+        output_pil = TF.to_pil_image(output_img).convert('L')
+        gt_pil = TF.to_pil_image(gt_img).convert('L')
 
-    new_im.paste(input_pil, (0, 0))
-    new_im.paste(output_pil, (width, 0))
-    new_im.paste(gt_pil, (width * 2, 0))
+        # Concatenate images horizontally
+        width, height = input_pil.size
+        total_width = width * 3
+        new_im = Image.new('L', (total_width, height))  # Use 'L' for grayscale images
 
-    # Save the concatenated image
-    save_dir = EXPERIMENTS_PATH.joinpath(config["model"]["name"], "mae_images", config["dataset"]["name"], config["model"]["params"]["mode"], config["model"]["params"]["voter"])
-    save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+        new_im.paste(input_pil, (0, 0))
+        new_im.paste(output_pil, (width, 0))
+        new_im.paste(gt_pil, (width * 2, 0))
 
-    # Save the concatenated image
-    filename = save_dir / f"mae_in_out_comparison_epoch_{epoch}.png"
-    new_im.save(filename)
+        # Save the concatenated image
+        save_dir = EXPERIMENTS_PATH
+        if "model" in config and "name" in config["model"]:
+            save_dir = save_dir.joinpath(config["model"]["name"])
+        save_dir = save_dir.joinpath("mae_images")
+        if "dataset" in config and "name" in config["dataset"]:
+            save_dir = save_dir.joinpath("dataset=" + config["dataset"]["name"])
+        if config["model"]["name"] == "end2end" and "params" in config["model"]:
+            if "mode" in config["model"]["params"]:
+                save_dir = save_dir.joinpath("dataset=" + config["model"]["params"]["mode"])
+            if "voter" in config["model"]["params"]:
+                save_dir = save_dir.joinpath(config["model"]["params"]["voter"])
+        save_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
+
+        # Save the concatenated image
+        filename = save_dir / f"mae_in_out_epoch{epoch}_batch{batch_no}_image{i}.png"
+        print("image saved to", filename)
+        new_im.save(filename)

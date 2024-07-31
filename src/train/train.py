@@ -35,7 +35,7 @@ def train(
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
     modelname = config["model"]["name"]
-    DEBUG = "debug" in config["model"]["params"]["mode"]
+    DEBUG = "debug" in config["model"]["params"].get("mode", None)
 
     loss_fn = get_loss(config)
 
@@ -53,7 +53,7 @@ def train(
         # training
         model.train()
 
-        for batch in pbar:
+        for i, batch in enumerate(pbar):
             if len(batch) == 2:
                 x, y = batch
                 cluster_id = None  # or some default value if needed
@@ -66,11 +66,10 @@ def train(
             x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
             if modelname == "end2end":
                 y_hat = model((x, cluster_id))
-                if DEBUG:
-                    y_hat, mae_input = y_hat
-                    save_image_triplet(mae_input, y_hat, y, epoch, config)
             else:
                 y_hat = model(x)  # forward pass
+            if DEBUG and modelname in ["end2end", "deeplabv3plus"]:
+                y_hat, _ = y_hat
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
 
@@ -90,7 +89,7 @@ def train(
         model.eval()
         val_pbar = tqdm(val_dataloader, desc=f'Validation:')
         with torch.no_grad():  # do not keep track of gradients
-            for batch in val_pbar:
+            for i, batch in enumerate(val_pbar):
 
                 if len(batch) == 2:
                     x, y = batch
@@ -101,10 +100,14 @@ def train(
                     raise ValueError("Unexpected batch size: expected 2 or 3 items, got {}".format(len(batch)))
 
                 x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
-                if modelname == "end2end" and cluster_id is not None:
+                if modelname == "end2end":
                     y_hat = model((x, cluster_id))
                 else:
                     y_hat = model(x)  # forward pass
+                if DEBUG and modelname in ["end2end", "deeplabv3plus"]:
+                    y_hat, mae_input = y_hat
+                    if epoch == n_epochs-1:
+                        save_image_triplet(mae_input, y_hat, y, epoch, i, config)
                 val_loss = loss_fn(y_hat, y)
 
                 # log partial metrics
