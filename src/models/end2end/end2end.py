@@ -31,6 +31,8 @@ class End2End(nn.Module):
             voter_result = self.vote(ensemble_predictions).unsqueeze(1)
             y_hat = self.mae(voter_result)
             if 'debug' in self.mode:
+                if type(y_hat) == tuple:
+                    y_hat = y_hat[0]
                 y_hat = y_hat, voter_result
         
         elif self.mode == 'mae-then-voter':

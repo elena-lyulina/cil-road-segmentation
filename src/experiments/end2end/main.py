@@ -14,7 +14,7 @@ cur_config = {
                              'weights/UNetPlusPlus/cil_cluster1/unetplusplus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-15-39_3.json',
                              'weights/deepLab/hrnet/cil_cluster0/deeplabv3plus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-25-35_3.json',
                              'weights/deepLab/hrnet/cil_cluster1/deeplabv3plus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-43-49_4.json',
-                             'weights/masked_deeplab/deeplabv3plus_all_masked_acc1-0_date27-07-2024_12-49-07_1.json'],
+                             'src/experiments/deepLabv3Plus/results/deeplabv3plus_cil_masked_acc0-99_date29-07-2024_23-57-48_7.json'],
 
             'voter': 'soft_voting_pixel_level',
             'train_mae': True,
@@ -23,17 +23,17 @@ cur_config = {
         }
     },
     'dataset': {
-        'name': 'both_clusters',
+        'name': 'cil',
         'params': {
             'batch_size': 4,
             'num_workers': 4,
             'shuffle': True,
             'resize_to': (400, 400),
-            'augment': []
+            'augment': ["geometric"]
         }
     },
     'train': {
-        'n_epochs': 5,
+        'n_epochs': 10,
         'optimizer': {
             'name': 'Adam',
             'params': {
@@ -51,4 +51,4 @@ if __name__ == '__main__':
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
     run_name = get_run_name(cur_config)
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
