@@ -228,6 +228,7 @@ def noise(mask, noise_threshold=0.5):
 
 
 def blobs_and_erode(img):
+    img = img.astype(np.uint8)
     img = add_random_black_blobs(img)
     img = uniformly_erode_and_smooth_blobs(img, num_blobs=2000, max_blob_size=50, erosion_size=2, dilation_size=5, seed=43)
     img = noise(img)
