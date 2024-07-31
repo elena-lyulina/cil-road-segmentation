@@ -2,13 +2,13 @@ from glob import glob
 from pathlib import Path
 
 from tqdm import tqdm
-from wandb.wandb_torch import torch
+import pandas as pd
 
-from src.constants import DEVICE, ROOT_PATH
+from src.constants import DEVICE, ROOT_PATH, OUT_PATH
 from src.data.datahandler import get_datahandler_class
 from src.experiments.config import get_model_path_from_config, load_config
 from src.train.metrics import get_metrics
-from src.train.train import load_checkpoint
+from src.train.train import load_checkpoint, make_sure_unique
 
 
 def get_all_configs(folders: list, name_keyword='', exclude_keywords: list = None, extension='json'):
@@ -22,6 +22,8 @@ def get_all_configs(folders: list, name_keyword='', exclude_keywords: list = Non
 
 
 def evaluate(config_paths: list, dataset_name: str, dataset_params=None):
+    records = []
+
     for config_path in config_paths:
         config = load_config(Path(config_path))
         model_path = get_model_path_from_config(Path(config_path))
@@ -31,6 +33,8 @@ def evaluate(config_paths: list, dataset_name: str, dataset_params=None):
             continue
 
         print(f'Evaluating model {model_name} from config {Path(config_path).name} on dataset {dataset_name}')
+        record = {'config_name': Path(config_path).name, 'dataset_name': dataset_name, 'model_name': model_name}
+
         model, _ = load_checkpoint(model_path)
         model.eval()
 
@@ -67,8 +71,14 @@ def evaluate(config_paths: list, dataset_name: str, dataset_params=None):
         metrics = {k: v for k, v in metrics.items() if len(v) > 0}
         # summarize and display metrics
         metrics = {k: sum(v) / len(v) for k, v in metrics.items()}
+        record.update(metrics)
         print(' '.join(['\t- ' + str(k) + ' = ' + str(v) + '\n ' for (k, v) in metrics.items()]))
         print('\n')
+        records.append(record)
+
+    df = pd.DataFrame.from_records(records)
+    save_path = make_sure_unique([OUT_PATH.joinpath(f'evaluation_on_{dataset_name}.csv')])[0]
+    df.to_csv(save_path, index=False)
 
 
 if __name__ == '__main__':
