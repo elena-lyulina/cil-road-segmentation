@@ -35,7 +35,7 @@ def train(
     n_epochs = config["train"]["n_epochs"]
     clip_grad = config["train"]["clip_grad"]
     modelname = config["model"]["name"]
-    DEBUG = "debug" in config["model"]["params"].get("mode", None)
+    DEBUG = "debug" in config["model"]["params"].get("mode", "")
 
     loss_fn = get_loss(config)
 
