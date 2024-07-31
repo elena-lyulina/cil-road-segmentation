@@ -34,7 +34,7 @@ cur_config ={
         }
     },
     "train": {
-        "n_epochs": 1,
+        "n_epochs": 30,
         "optimizer": {
             "name": "Adam",
             "params": {
