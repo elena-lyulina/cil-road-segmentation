@@ -7,5 +7,6 @@ src/experiments/*/results/
 src/experiments/vansh
 weights/
 **/mae_images/
+slurm-*.out
 
 .vscode/launch.json
