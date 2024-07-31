@@ -11,11 +11,10 @@ cur_config ={
             "pretrained_backbone": True,
             "separable_conv": True,
             "mode": "debug"
-        },
-        'from_pretrained': '/Users/diego/Desktop/Academia/FS2024/CIL/cil-road-segmentation/src/experiments/deepLabv3Plus/results/deeplabv3plus_both_clusters_masked_acc1-0_date29-07-2024_16-06-39_2.json'
+        }
     },
     "dataset": {
-        "name": "cil",
+        "name": "both_clusters",
         "params": {
             "batch_size": 4,
             "num_workers": 4,
@@ -35,7 +34,7 @@ cur_config ={
         }
     },
     "train": {
-        "n_epochs": 10,
+        "n_epochs": 1,
         "optimizer": {
             "name": "Adam",
             "params": {
@@ -44,7 +43,7 @@ cur_config ={
         },
         "loss": "DiceBCELoss",
         "clip_grad": None,
-        "n_gpus": 1
+        "n_gpus": 0
     }
 }
 
@@ -52,4 +51,4 @@ if __name__ == '__main__':
     save_path, experiment_name = get_save_path_and_experiment_name(__file__)
     run_name = get_run_name(cur_config, 'masked')
 
-    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=True)
+    run_config(cur_config, save_path, experiment_name, run_name, log_wandb=False)

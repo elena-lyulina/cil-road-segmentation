@@ -15,7 +15,7 @@ def set_bn_momentum(model, momentum=0.1):
 class DeepLabv3Plus(nn.Module):
 
     # TODO: add option for disabling pretrained backbone
-    def __init__(self, backbone='resnet101', output_stride=8, num_classes=2, pretrained_backbone=True, separable_conv=False):
+    def __init__(self, backbone='resnet101', output_stride=8, num_classes=2, pretrained_backbone=True, separable_conv=False, mode=False):
         super(DeepLabv3Plus, self).__init__()
 
         self.model = network.modeling._load_model('deeplabv3plus', backbone, num_classes, output_stride, pretrained_backbone)
