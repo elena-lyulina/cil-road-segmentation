@@ -82,18 +82,18 @@ def evaluate(config_paths: list, dataset_name: str, dataset_params=None):
 
 
 if __name__ == '__main__':
-    path = str(ROOT_PATH.joinpath('out', 'models'))
+    path = str('/ws/cil_checkpoints/deepLab/hrnet/all/')
 
-    configs = get_all_configs([path], name_keyword='cluster0')
-    evaluate(configs, 'cil_cluster0')
+    configs = get_all_configs([path], name_keyword='all')
+    evaluate(configs, 'DeepGlobe')
     print('\n')
 
-    configs = get_all_configs([path], name_keyword='cluster1')
-    evaluate(configs, 'cil_cluster1')
-    print('\n')
-
-    configs = get_all_configs([path], exclude_keywords=['cluster0', 'cluster1'])
-    evaluate(configs, 'cil')
+    # configs = get_all_configs([path], name_keyword='cluster1')
+    # evaluate(configs, 'cil_cluster1')
+    # print('\n')
+    #
+    # configs = get_all_configs([path], exclude_keywords=['cluster0', 'cluster1'])
+    # evaluate(configs, 'cil')
 
 
 

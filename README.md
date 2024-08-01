@@ -242,3 +242,17 @@ Use the created sweep id for the next step.
 **Step 3.** Now, you can run an agent for the created sweep by passing the received sweep id into `src.experiments.sweep_config.run_sweep_agent`,
 specifying the number of runs to try. 
 
+
+### End-to-End Submission
+
+To create a submission using the entire pipeline, you can use the `src.submission.end2end` module. 
+Similar to training a model, create an `end2end.py` file in the `src/experiments` directory and 
+call the `src.submission.end2end.run_end2end` function with the path to the model's config file.
+Refer to `src/experiments/example/end2end.py` for an example.
+
+To use clustering, pass a list of tuples containing the two models for the respective clusters as `config_paths` 
+and set the `clusters`-flag to `True`.
+By using a simple list of model paths, clustering will not be used and all data will be evaluated on all models.
+Choose one of the available voting methods by setting `voter` to either `hard-pixel`, `soft-pixel`, `hard-patch` or `soft-patch`.
+Setting the `with_mae`-flag requires you to specify a path to the MAE model in the `mae_path`-parameter
+and will use the MAE on top of the voting for post-processing. Otherwise, the final submission will be created using the voting results.
