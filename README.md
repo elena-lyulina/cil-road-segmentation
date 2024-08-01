@@ -121,7 +121,8 @@ For example, the following config would train a ```small_unet``` model on the ``
             }
         },
         'loss': 'BCELoss',
-        'clip_grad': None
+        'clip_grad': None,
+        'n_gpus': 1,
     }
 }
 ```
@@ -166,6 +167,9 @@ Finally, you will need to create a config: a dictionary with all settings for th
 Of course, you can do it manually, but there is also a helper function for that.
 Just call ```src.experiments.config.generate_config``` with the registered names of the model and the dataset you want to use.
 It will print a dictionary with all the necessary params you need to fill in to later be passed into the corresponding model/datahandler class (taken from their ```init``` method). 
+
+Training with multiple GPUs is also supported in general, although some models may not work or are poorly optimized for distributed training.
+We therefore recommend to set the number of GPUs to 1.
 
 Have fun!
 
