@@ -47,7 +47,7 @@ def end2end(config_paths: List[Path], voter: str, experiment_name, with_mae=True
             model0.eval()
             model1.eval()
 
-            submissions.append(test_model_on_full_images_for_end2end(model0=model0, model1=model1, cluster=cluster))
+            submissions.append(test_model_on_full_images_for_end2end(model0=model0, model1=model1, cluster=cluster, mae_config_path=mae_config_path))
 
     if voter == "hard_pixel":
         interim_predictions = hard_voting_pixel_level(submissions)
@@ -63,34 +63,21 @@ def end2end(config_paths: List[Path], voter: str, experiment_name, with_mae=True
         raise ValueError("Invalid voter type")
 
     if with_mae:
-        experiment_name = get_experiment_name_from_config(mae_config_path)
-        submission_name = mae_config_path.stem
         mae_model_path = get_model_path_from_config(mae_config_path)
         model, _ = load_checkpoint(mae_model_path)
         model.eval()
-        run_mae(interim_predictions, model, experiment_name, submission_name)
-    else:
-        experiment_prediction_path = PREDICTION_PATH.joinpath(experiment_name)
-        os.makedirs(experiment_prediction_path, exist_ok=True)
-        prediction_file_path = experiment_prediction_path.joinpath(
-            f"{submission_name}.csv")
-        prediction_file_path = make_sure_unique([prediction_file_path])[0]
-        # test_paths = TEST_IMAGES_PATH.glob('*.png')
-        test_paths = glob(str(TEST_IMAGES_PATH) + '/*.png')
 
-        # shape (144, 400, 400, 1), resize back to original shape
-        pred = np.stack([img for img in interim_predictions], 0)
+        test_images = np_to_tensor(np.moveaxis(
+            interim_predictions, -1, 1), DEVICE)  # shape (144, 1, H, W)
 
-        pred = pred.reshape(
-            (-1, 400 // PATCH_SIZE, PATCH_SIZE, 400 // PATCH_SIZE, PATCH_SIZE))
-        pred = np.moveaxis(pred, 2, 3)  # shape (144, 25, 25, 16, 16)
-        pred = np.round(np.mean(pred, (-1, -2)) >
-                             CUTOFF)  # shape (144, 25, 25)
+        pred = [model(t)[0].detach().cpu().numpy()
+                     for t in tqdm(test_images.unsqueeze(1))]
 
-        print(f"Creating submission file {prediction_file_path}")
-        create_submission(pred, test_paths, prediction_file_path, PATCH_SIZE)
+        pred = np.concatenate(pred, 0)  # shape (144, 1, H, W)
+        # shape (144, H, W, 1), CxHxW to HxWxC
+        pred = np.moveaxis(pred, 1, -1)
 
-def run_mae(voter_op, model: nn.Module, experiment_name: str, submission_name: str):
+        interim_predictions = (pred > 0.5).astype(np.float32)
 
     experiment_prediction_path = PREDICTION_PATH.joinpath(experiment_name)
     os.makedirs(experiment_prediction_path, exist_ok=True)
@@ -100,32 +87,20 @@ def run_mae(voter_op, model: nn.Module, experiment_name: str, submission_name: s
     # test_paths = TEST_IMAGES_PATH.glob('*.png')
     test_paths = glob(str(TEST_IMAGES_PATH) + '/*.png')
 
-    test_images = np_to_tensor(np.moveaxis(
-        voter_op, -1, 1), DEVICE)  # shape (144, 1, H, W)
-    original_size = test_images.shape[1:3]
-
-    print("Running the MAE model on test images..")
-    test_pred = [model(t).detach().cpu().numpy()
-                 for t in tqdm(test_images.unsqueeze(1))]
-    test_pred = np.concatenate(test_pred, 0)  # shape (144, 1, H, W)
-    # shape (144, H, W, 1), CxHxW to HxWxC
-    test_pred = np.moveaxis(test_pred, 1, -1)
     # shape (144, 400, 400, 1), resize back to original shape
-    test_pred = np.stack([cv2.resize(img, dsize=original_size)
-                         for img in test_pred], 0)
-    # now split into patches and compute labels
-    # shape (144, 25, 16, 25, 16)
-    test_pred = test_pred.reshape(
-        (-1, original_size[0] // PATCH_SIZE, PATCH_SIZE, original_size[0] // PATCH_SIZE, PATCH_SIZE))
-    test_pred = np.moveaxis(test_pred, 2, 3)  # shape (144, 25, 25, 16, 16)
-    test_pred = np.round(np.mean(test_pred, (-1, -2)) >
+    pred = np.stack([img for img in interim_predictions], 0)
+
+    pred = pred.reshape(
+        (-1, 400 // PATCH_SIZE, PATCH_SIZE, 400 // PATCH_SIZE, PATCH_SIZE))
+    pred = np.moveaxis(pred, 2, 3)  # shape (144, 25, 25, 16, 16)
+    pred = np.round(np.mean(pred, (-1, -2)) >
                          CUTOFF)  # shape (144, 25, 25)
 
     print(f"Creating submission file {prediction_file_path}")
-    create_submission(test_pred, test_paths, prediction_file_path, PATCH_SIZE)
+    create_submission(pred, test_paths, prediction_file_path, PATCH_SIZE)
 
 
-def test_model_on_full_images_for_end2end(model0: nn.Module, model1=None, cluster=False):
+def test_model_on_full_images_for_end2end(model0: nn.Module, model1=None, cluster=False, mae_config_path=None):
     # Runs the model on test images (possibly resized to a required size),
     # resizes the model's output back to the original size,
     # then creates patches, calculates the cutoff, and creates a submission file
@@ -133,7 +108,9 @@ def test_model_on_full_images_for_end2end(model0: nn.Module, model1=None, cluste
     test_images = load_all_from_path(
         str(TEST_IMAGES_PATH))  # shape (144, 400, 400, 4)
 
-
+    mae_model_path = get_model_path_from_config(mae_config_path)
+    model, _ = load_checkpoint(mae_model_path)
+    model.eval()
 
     # test_images = np.stack([img for img in test_images], 0)
     # shape (144, H, W, 3), leave only 3 channels

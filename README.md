@@ -27,7 +27,7 @@ Note: We run our experiments on Python version 3.11.5. We recommend users use th
 
 ### Dataset
 We assembled a large dataset of satelite images based on thorough analysis of given samples to ensure high-quality, relevant training data, split into clusters.
-All data used in this study can be downloaded here. 
+All data used in this study can be downloaded [here](https://polybox.ethz.ch/index.php/s/UX0qSMQused9TPc). 
 Jupyter notebook ```notebook/cil_data.ipynb``` contains all data analysis, visualization, filtration, and clustering.
 
 ### Trained models
