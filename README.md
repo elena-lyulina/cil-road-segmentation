@@ -28,6 +28,7 @@ Note: We run our experiments on Python version 3.11.5. We recommend users use th
 ### Dataset
 We assembled a large dataset of satelite images based on thorough analysis of given samples to ensure high-quality, relevant training data, split into clusters.
 All data used in this study can be downloaded here. 
+Jupyter notebook ```notebook/cil_data.ipynb``` contains all data analysis, visualization, filtration, and clustering.
 
 ### Trained models
 We experiemnted with many different SOTA models and various architectures to predict road masks and restore roads connectivity.
@@ -35,6 +36,7 @@ All trained models can be downloaded [here](https://polybox.ethz.ch/index.php/s/
 
 ### Results reproduction
 To reproduce the results, you can run ```src/submission/evaluate.py``` on dowloaded models and data. 
+As both models and data are quite heavy, the results are additionally saved in the ```out``` directory. 
 
 ### Directory Structure
 ```
@@ -47,12 +49,8 @@ CIL-ROAD-SEGMENTATION-2024
     |   |   └───training
     |   |       |───groundtruth
     |   |       └───images
-    |   └───data-massachusetts
-    |       |───test 
-    |       |───test_labels
-    |       |───train
-    |       |───train_labels
-    |       └───val
+    |   └───...
+    |
     |───docs
     |───notebook
     |───out                         // models for submission
@@ -79,8 +77,14 @@ CIL-ROAD-SEGMENTATION-2024
         |   └───utils.py            // any common code used for implementing the models
         |
         |───submission              // submission code
+        |   |───end2end.py          // whole pipeline submission
+        |   |───evaluate.py         // evaluating models with configs on various data
+        |   |───mask_to_submission.py
+        |   |───submission_to_mask.py
+        |   └───test.py             // test and create a submission
         |
         |───train                   // training the models
+        |   |───loss.py             // loss functions
         |   |───metrics.py          // metrics calculated during training
         |   |───train.py            // the main implementation of the training
         |   └───utils.py            // any common code needed for training
