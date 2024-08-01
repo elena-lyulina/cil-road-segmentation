@@ -94,11 +94,16 @@ class RoadSegDataset(Dataset):
     def __getitem__(self, item):
         # return self._preprocess(np_to_tensor(self.x[item], self.device), np_to_tensor(self.y[[item]], self.device))
         img_path, mask_path = self.items[item]
-        image = Image.open(img_path)
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-        image = np.array(image)[:, :, :3].astype(np.float32) / 255.0
         mask = np.array(Image.open(mask_path).convert("L")).astype(np.float32) / 255.0
+
+        if img_path != mask_path: # standard execution
+            image = Image.open(img_path)
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            image = np.array(image)[:, :, :3].astype(np.float32) / 255.0
+
+        else: # mask only training
+            image = mask.copy()
 
         if self.resize_to != (image.shape[0], image.shape[1]):  # resize images
             image = cv2.resize(image, dsize=self.resize_to)
@@ -122,7 +127,7 @@ class RoadSegDataset(Dataset):
         return len(self.items)
     
 
-def add_random_black_blobs(img, seed=31, blur_sigma=7, threshold=179, kernel_size=(9, 9)):
+def add_random_black_blobs(img, seed=31, blur_sigma=7, threshold=177, kernel_size=(9, 9)):
     import skimage.exposure
 
     # Load the image in grayscale
@@ -150,6 +155,7 @@ def add_random_black_blobs(img, seed=31, blur_sigma=7, threshold=179, kernel_siz
     black_blobs = 255 - mask
 
     # Combine the blobs with the original image
+    black_blobs = black_blobs.astype(np.float32) / 255.0
     result = cv2.bitwise_and(img, black_blobs)
 
     return result
@@ -170,47 +176,44 @@ def uniformly_erode_and_smooth_blobs(image, num_blobs=10, max_blob_size=50, eros
     Returns:
     numpy array: The uniformly eroded and smoothed mask.
     """
-    # Add border to avoid edge artifacts
-    image = cv2.copyMakeBorder(image, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[0,0,0])
+    image = image.astype(np.float32)
+    if image.max() > 1.0 or image.min() < 0.0:
+        image /= 255.0
 
-    # Ensure the image is in binary format
-    _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+    image = cv2.copyMakeBorder(image, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+
+    _, binary_image = cv2.threshold(image, 0.5, 1.0, cv2.THRESH_BINARY)
+    binary_image = (binary_image * 255).astype(np.uint8)
 
     height, width = binary_image.shape
-    rng = default_rng()
+    rng = default_rng(seed=seed)
 
-    # Define the erosion and dilation kernels as circular
     erosion_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (erosion_size, erosion_size))
     dilation_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
 
-    # Create a temporary image for sequential processing
     temp_image = binary_image.copy()
 
     for _ in range(num_blobs):
-        # Randomly choose the center of the blob
         x_center = rng.integers(0, width)
         y_center = rng.integers(0, height)
         blob_width = rng.integers(10, max_blob_size)
         blob_height = rng.integers(10, max_blob_size)
 
-        # Create an elliptical/oval blob within a temporary mask
         temp_mask = np.zeros_like(binary_image)
-        cv2.ellipse(temp_mask, (x_center, y_center), (blob_width // 2, blob_height // 2), 
+        cv2.ellipse(temp_mask, (x_center, y_center), (blob_width // 2, blob_height // 2),
                     angle=0, startAngle=0, endAngle=360, color=(255,), thickness=-1)
 
-        # Apply erosion only to the region defined by the blob mask
         eroded_area = cv2.erode(temp_image, erosion_kernel, iterations=1)
         temp_image = np.where(temp_mask == 255, eroded_area, temp_image)
 
-    # After all blobs have been eroded, apply dilation to smooth the entire image
     smoothed_image = cv2.dilate(temp_image, dilation_kernel, iterations=1)
 
-    # Remove the added border
     smoothed_image = smoothed_image[10:-10, 10:-10]
+    smoothed_image = smoothed_image.astype(np.float32) / 255.0
 
     return smoothed_image
 
-def noise(mask, noise_threshold=0.5):
+def noise(mask, noise_threshold=2):
     if noise_threshold < 100:
         noise = np.random.normal(0, 1, mask.shape)
         random_ones = (noise > noise_threshold).astype(np.float32)
@@ -228,16 +231,13 @@ def noise(mask, noise_threshold=0.5):
 
 
 def blobs_and_erode(img):
-    img = img.astype(np.uint8)
     img = add_random_black_blobs(img)
-    img = uniformly_erode_and_smooth_blobs(img, num_blobs=2000, max_blob_size=50, erosion_size=2, dilation_size=5, seed=43)
-    img = noise(img)
 
+    img = uniformly_erode_and_smooth_blobs(img, num_blobs=1250, max_blob_size=40, erosion_size=3, dilation_size=5, seed=43)    
     return img
 
 
 
-# Example usage
 # img = cv2.imread('data/cil/training/groundtruth/satimage_10.png', cv2.IMREAD_GRAYSCALE)
 # output_image = blobs_and_erode(img)
 
