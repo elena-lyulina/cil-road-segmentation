@@ -7,6 +7,8 @@ from pathlib import Path
 from src import voter
 import numpy as np
 
+from src.constants import DEVICE
+from src.data.utils import np_to_tensor
 from src.models.utils import MODEL_REGISTRY
 from src.train.train import load_checkpoint
 
@@ -25,26 +27,28 @@ class End2End(nn.Module):
     def forward(self, x):
         ensemble_predictions = self.ensemble_forward(x)
 
-        voter_result = None
+        ensemble_pred = [pred.to('cpu').detach().numpy() for pred in ensemble_predictions]
 
         if 'voter-then-mae' in self.mode:
-            voter_result = self.vote(ensemble_predictions).unsqueeze(1)
+            voter_result = np.expand_dims(self.vote(ensemble_pred), 1)
+            voter_result = np_to_tensor(voter_result, DEVICE)
             y_hat = self.mae(voter_result)
             if 'debug' in self.mode:
                 if type(y_hat) == tuple:
                     y_hat = y_hat[0]
                 y_hat = y_hat, voter_result
-        
+
+
         elif self.mode == 'mae-then-voter':
-            mae_all_predictions = [self.mae(prediction) for prediction in ensemble_predictions]
+            mae_all_predictions = [self.mae(prediction) for prediction in ensemble_pred]
             y_hat = self.vote(mae_all_predictions)
 
         elif self.mode == 'no-mae':
-            y_hat =  self.vote(ensemble_predictions).unsqueeze(1)
-        
+            y_hat = self.vote(ensemble_pred).unsqueeze(1)
+
         else:
             raise ValueError("Invalid mode. Choose 'voter-then-mae', 'mae-then-voter', 'no-mae', 'voter-then-mae-debug'.")
-        
+
         return y_hat
 
     def ensemble_forward(self, x):

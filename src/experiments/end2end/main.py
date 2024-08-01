@@ -6,21 +6,31 @@ cur_config = {
     'model': {
         'name': 'end2end',
         'params': {
-            'config_paths': ['weights/dLinkNet/cil_cluster0/dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json',
-                             'weights/dLinkNet/cil_cluster1/dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json',
-                             'weights/PSPNet/cil_cluster0/PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json',
-                             'weights/PSPNet/cil_cluster1/PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json',
-                             'weights/UNetPlusPlus/cil_cluster0/unetplusplus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-05-53_9.json',
-                             'weights/UNetPlusPlus/cil_cluster1/unetplusplus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-15-39_3.json',
-                             'weights/deepLab/hrnet/cil_cluster0/deeplabv3plus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-25-35_3.json',
-                             'weights/deepLab/hrnet/cil_cluster1/deeplabv3plus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-43-49_4.json',
-                             'src/experiments/deepLabv3Plus/results/deeplabv3plus_cil_masked_acc0-99_date29-07-2024_23-57-48_7.json'],
+            'config_paths': ['C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dLinkNet\\cil_cluster0\\dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dLinkNet\\cil_cluster1\\dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json',
 
-            'voter': 'soft_voting_pixel_level',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\PSPNet\\cil_cluster0\\PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\PSPNet\\cil_cluster1\\PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json',
+
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\UNetPlusPlus\\cil_cluster0\\unetplusplus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-05-53_9.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\UNetPlusPlus\\cil_cluster1\\unetplusplus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-15-39_3.json',
+
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\deepLab\\resnet\\cil_cluster0\\deeplabv3plus_cil_cluster0_pretrained_all_cluster0_resnet_acc0-95_date28-07-2024_14-19-54_7.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\deepLab\\resnet\\cil_cluster1\\deeplabv3plus_cil_cluster1_pretrained_all_cluster1_resnet_acc0-94_date28-07-2024_14-38-17_8.json',
+
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\deepLab\\hrnet\\same_but_clusters\\cluster0_deeplabv3plus_cil_pretrained_all_both_clusters_acc0-95_date28-07-2024_13-39-10_1.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\deepLab\\hrnet\\same_but_clusters\\cluster1_deeplabv3plus_cil_pretrained_all_both_clusters_acc0-95_date28-07-2024_13-39-10_1.json',
+
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dinoPlusUNet\\same_but_cluster\\cluster0_dino_plus_unet_cil_pretrained_all_both_clusters_acc0-94_date29-07-2024_09-12-16_0.json',
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dinoPlusUNet\\same_but_cluster\\cluster0_dino_plus_unet_cil_pretrained_all_both_clusters_acc0-94_date29-07-2024_09-12-16_0.json',
+
+                             'M:\\Workspace\\cil-road-segmentation\\src\experiments\\end2end\\results\\end2end_cil_acc0-82_date01-08-2024_11-25-07_3.json',],
+
+            'voter': 'hard_voting_pixel_level',
             'train_mae': True,
             'mode': 'voter-then-mae-debug',
-            'resize_to': (400, 400)
-        }
+            'resize_to': (400, 400),
+        },
     },
     'dataset': {
         'name': 'cil',
@@ -33,7 +43,7 @@ cur_config = {
         }
     },
     'train': {
-        'n_epochs': 10,
+        'n_epochs': 2,
         'optimizer': {
             'name': 'Adam',
             'params': {

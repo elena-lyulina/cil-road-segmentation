@@ -70,8 +70,8 @@ def train(
                 y_hat = model(x)  # forward pass
             if DEBUG and modelname in ["end2end", "deeplabv3plus"]:
                 y_hat, mae_input = y_hat
-                if ((i+1) % 1614 == 0):
-                    save_image_triplet(mae_input, y_hat, y, epoch, i, "train", config)
+                # if (epoch == 1 or epoch == 5):
+                #     save_image_triplet(mae_input, y_hat, y, epoch, i, "train", config)
             loss = loss_fn(y_hat, y)
             loss.backward()  # backward pass
 
@@ -128,6 +128,10 @@ def train(
             wandb_run.log(history[epoch])
 
     print('Finished Training')
+
+    if DEBUG and modelname in ["end2end"]:
+        save_model(config, model.mae, optimizer, n_epochs, save_path, save_name + 'mae', wandb_run, save_wandb)
+
     save_name = get_save_name(save_name, best_val_acc)
     save_model(config, model, optimizer, n_epochs, save_path, save_name, wandb_run, save_wandb)
 
