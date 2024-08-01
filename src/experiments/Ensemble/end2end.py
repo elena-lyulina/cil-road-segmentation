@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     mae_conf = Path('C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\masked-deeplab\\cil\\end2end_cil_masked_cilmae2_0.json')
 
-    experiment_name = 'example'
+    experiment_name = 'mae_hard-pixel'
     voter = 'hard_pixel'
     cluster = True
     with_mae = True

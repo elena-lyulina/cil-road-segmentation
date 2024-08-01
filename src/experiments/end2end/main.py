@@ -24,7 +24,7 @@ cur_config = {
                              'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dinoPlusUNet\\same_but_cluster\\cluster0_dino_plus_unet_cil_pretrained_all_both_clusters_acc0-94_date29-07-2024_09-12-16_0.json',
                              'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\dinoPlusUNet\\same_but_cluster\\cluster0_dino_plus_unet_cil_pretrained_all_both_clusters_acc0-94_date29-07-2024_09-12-16_0.json',
 
-                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\masked-deeplab\\cil\\end2end_cilmae.json'],
+                             'C:\\Users\\Louis\\Desktop\\CIL_results_files-NEW\\masked-deeplab\\both\\end2end_both_clustersmae.json'],
 
             'voter': 'hard_voting_pixel_level',
             'train_mae': True,

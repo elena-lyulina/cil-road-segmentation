@@ -6,6 +6,7 @@ from typing import Tuple, List
 
 import cv2
 import numpy as np
+import torch
 from torch import nn
 from tqdm import tqdm
 
