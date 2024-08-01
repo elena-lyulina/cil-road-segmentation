@@ -13,8 +13,6 @@ def set_bn_momentum(model, momentum=0.1):
 
 @MODEL_REGISTRY.register("deeplabv3plus")
 class DeepLabv3Plus(nn.Module):
-
-    # TODO: add option for disabling pretrained backbone
     def __init__(self, backbone='resnet101', output_stride=8, num_classes=2, pretrained_backbone=True, separable_conv=False, mode=False):
         super(DeepLabv3Plus, self).__init__()
 
