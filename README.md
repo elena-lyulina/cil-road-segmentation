@@ -32,7 +32,7 @@ Jupyter notebook ```notebook/cil_data.ipynb``` contains all data analysis, visua
 
 ### Trained models
 We experiemnted with many different SOTA models and various architectures to predict road masks and restore roads connectivity.
-All trained models can be downloaded [here](https://polybox.ethz.ch/index.php/s/dhxJ28YdsefrJcl).
+All trained models can be downloaded [here](https://polybox.ethz.ch/index.php/s/j6IySJc5mwSxeoF).
 
 ### Results reproduction
 To reproduce the results, you can run ```src/submission/evaluate.py``` on dowloaded models and data. 
