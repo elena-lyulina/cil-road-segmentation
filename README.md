@@ -62,6 +62,7 @@ CIL-ROAD-SEGMENTATION-2024
         |
         |───experiments             // all experiments we've done
         |   |───example
+        |   |   |───end2end         // creating a submission using the whole pipeline
         |   |   |───results         // results of the experiment: trained models, etc
         |   |   |───finetune.py     // finetuning a model
         |   |   |───main.py         // running the experiment
@@ -119,10 +120,7 @@ For example, the following config would train a ```small_unet``` model on the ``
                 'lr': 0.0005
             }
         },
-        'loss': {
-            'name': 'BCELoss',
-            'params': { }
-        },
+        'loss': 'BCELoss',
         'clip_grad': None
     }
 }
@@ -247,7 +245,7 @@ specifying the number of runs to try.
 
 To create a submission using the entire pipeline, you can use the `src.submission.end2end` module. 
 Similar to training a model, create an `end2end.py` file in the `src/experiments` directory and 
-call the `src.submission.end2end.run_end2end` function with the path to the model's config file.
+call the `src.submission.end2end.run_end2end` function with the paths to the model's config files.
 Refer to `src/experiments/example/end2end.py` for an example.
 
 To use clustering, pass a list of tuples containing the two models for the respective clusters as `config_paths` 
