@@ -23,4 +23,4 @@ if __name__ == '__main__':
     with_mae = False
     mae_path = ''
 
-    end2end(config_paths_with_clusters, voter, experiment_name=experiment_name, with_mae=with_mae, cluster=cluster)
+    end2end(config_paths_with_clusters, voter, experiment_name=experiment_name, with_mae=with_mae, cluster=cluster, mae_config_path=mae_path)
