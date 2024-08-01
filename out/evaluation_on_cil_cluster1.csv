@@ -1,0 +1,13 @@
+config_name,dataset_name,model_name,val_acc,val_patch_acc,val_patch_f1
+PSPNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-04-01_9.json,cil_cluster1,PSPNet,0.9323870539665222,0.9191999946321759,0.8291313903672355
+PSPNet_cluster1_pretrained_all_acc0-96_date27-07-2024_16-03-49_0.json,cil_cluster1,PSPNet,0.9244214296340942,0.9057142904826573,0.7991383246013096
+unetplusplus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-15-39_3.json,cil_cluster1,unetplusplus,0.9369423985481262,0.9274285776274545,0.847029311316354
+unetplusplus_cluster1_pretrained_all_acc0-97_date28-07-2024_10-26-27_2.json,cil_cluster1,unetplusplus,0.9311575889587402,0.9135999935013908,0.8204810619354248
+dLinkNet_cil_cluster1_pretrained_all_cluster1_acc0-94_date27-07-2024_17-35-19_9.json,cil_cluster1,dLinkNet,0.9319307889257159,0.9202285664422172,0.8346835715430123
+dLinkNet_cluster1_pretrained_all_acc0-96_date27-07-2024_16-12-19_3.json,cil_cluster1,dLinkNet,0.9247834852763585,0.9105142865862165,0.8049137251717704
+deeplabv3plus_cil_cluster1_pretrained_all_cluster1_acc0-94_date28-07-2024_11-43-49_4.json,cil_cluster1,deeplabv3plus,0.9384374959128243,0.9264000058174133,0.8503756182534354
+deeplabv3plus_cluster1_pretrained_all_acc0-97_date28-07-2024_10-45-33_1.json,cil_cluster1,deeplabv3plus,0.9375544701303754,0.9192000031471252,0.831186056137085
+deeplabv3plus_cil_cluster1_pretrained_all_cluster1_resnet_acc0-94_date28-07-2024_14-38-17_8.json,cil_cluster1,deeplabv3plus,0.9371437345232282,0.924114295414516,0.8444120117596218
+deeplabv3plus_cluster1_pretrained_all_resnet_acc0-97_date28-07-2024_12-30-13_2.json,cil_cluster1,deeplabv3plus,0.9410660692623684,0.9235428486551557,0.8216405766350883
+dino_plus_unet_cil_cluster1_pretrained_all_cluster1_acc0-94_date29-07-2024_11-01-10_6.json,cil_cluster1,dino_plus_unet,0.9286209855760846,0.9138285773141044,0.821590747152056
+dino_plus_unet_cluster1_pretrained_all_acc0-96_date28-07-2024_18-05-52_0.json,cil_cluster1,dino_plus_unet,0.9265883905547005,0.9094856977462769,0.8093023555619376

@@ -1,0 +1,14 @@
+config_name,dataset_name,model_name,val_acc,val_patch_acc,val_patch_f1
+PSPNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-02-00_2.json,cil_cluster0,PSPNet,0.9367620604378837,0.9328000034604754,0.8830294609069824
+PSPNet_cluster0_pretrained_all_acc0-96_date27-07-2024_16-05-25_5.json,cil_cluster0,PSPNet,0.9291843686785016,0.9217142803328378,0.8583720581872123
+unetplusplus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-05-53_9.json,cil_cluster0,unetplusplus,0.9431004524230957,0.9402285814285278,0.8965739437511989
+unetplusplus_cluster0_pretrained_all_acc0-96_date28-07-2024_10-40-06_2.json,cil_cluster0,unetplusplus,0.9346620610782078,0.9249142919267926,0.8592581834111895
+dLinkNet_cil_cluster0_pretrained_all_cluster0_acc0-95_date27-07-2024_17-30-15_1.json,cil_cluster0,dLinkNet,0.9399214301790509,0.9363428524562291,0.8906337107930865
+dLinkNet_cluster0_pretrained_all_acc0-96_date27-07-2024_16-32-40_7.json,cil_cluster0,dLinkNet,0.928118748324258,0.9185142942837307,0.8515909484454564
+deeplabv3plus_cil_cluster0_pretrained_all_cluster0_acc0-95_date29-07-2024_22-45-26_2.json,cil_cluster0,deeplabv3plus,0.9413486548832485,0.9398857014519828,0.898624232837132
+deeplabv3plus_cil_cluster0_pretrained_all_cluster0_acc0-95_date28-07-2024_11-25-35_3.json,cil_cluster0,deeplabv3plus,0.9424151693071637,0.9410285694258553,0.9044695581708636
+deeplabv3plus_cluster0_pretrained_all_acc0-96_date28-07-2024_10-59-43_3.json,cil_cluster0,deeplabv3plus,0.9408442037446159,0.9382857169423785,0.8907938088689532
+deeplabv3plus_cil_cluster0_pretrained_all_cluster0_resnet_acc0-95_date28-07-2024_14-19-54_7.json,cil_cluster0,deeplabv3plus,0.9455549120903015,0.9433142798287528,0.9021791390010289
+deeplabv3plus_cluster0_pretrained_all_resnet_acc0-96_date28-07-2024_12-35-32_3.json,cil_cluster0,deeplabv3plus,0.9355406335421971,0.931771423135485,0.8797343628747123
+dino_plus_unet_cil_cluster0_pretrained_all_cluster0_acc0-95_date29-07-2024_10-16-46_9.json,cil_cluster0,dino_plus_unet,0.9345526695251465,0.9293714165687561,0.8826083285467965
+dino_plus_unet_cluster0_pretrained_all_acc0-96_date28-07-2024_18-40-34_0.json,cil_cluster0,dino_plus_unet,0.9303111604281834,0.9211428506033761,0.86517881495612
